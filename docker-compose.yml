@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  spring:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.spring
+    image: spring
+    container_name: spring
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${HLS_PATH}/hls:/tmp/hls
+      - ${HLS_PATH}/hls_audio:/tmp/hls_audio
+    networks:
+      - app-network
+
+  nginx-rtmp:
+    build:
+      context: .
+      dockerfile: dockerfile/Dockerfile.nginx
+    image: nginx-rtmp
+    container_name: nginx-rtmp
+    ports:
+      - "1935:1935"
+      - "8081:8081"
+    volumes:
+      - ${HLS_PATH}/hls:/tmp/hls
+      - ${HLS_PATH}/hls_audio:/tmp/hls_audio
+    networks:
+      - app-network
+
+networks:
+  app-network:
