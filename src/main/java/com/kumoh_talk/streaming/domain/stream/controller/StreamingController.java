@@ -21,4 +21,10 @@ public class StreamingController {
         streamingService.startStreaming(name);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
+
+    @PostMapping("/stop")
+    public ResponseEntity<ResponseBody<Void>> stopStream(@RequestParam("name") String name) {
+        streamingService.stopStreaming(name);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
 }

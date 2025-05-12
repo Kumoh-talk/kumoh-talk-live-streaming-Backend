@@ -8,6 +8,10 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
 
 @Slf4j
 @Service
@@ -17,9 +21,17 @@ public class StreamingService {
     private static final String DESKTOP_TYPE = "desktop";
     private static final String WEBCAM_TYPE = "webcam";
 
+    private static final String OUTPUT_DIR = "/tmp";
+
     private static final String ALLOWED_STREAM_KEY = "hello";
 
     public void startStreaming(String name) {
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            log.error("스레드 대기 실패: {}", e.getMessage());
+        }
+
         log.info("stream name: {}", name);
 
         String[] parts = name.split("_");
@@ -53,10 +65,9 @@ public class StreamingService {
 
     private void convertRtmpToHlsWithAudio(String name) {
         String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
-        String outputDir = "/tmp";
 
-        String hlsDir = outputDir + "/hls/" + name;
-        String hlsAudioDir = outputDir + "/hls_audio/" + name;
+        String hlsDir = OUTPUT_DIR + "/hls/" + name;
+        String hlsAudioDir = OUTPUT_DIR + "/hls_audio/" + name;
 
         new File(hlsDir).mkdirs();
         new File(hlsAudioDir).mkdirs();
@@ -81,6 +92,28 @@ public class StreamingService {
         } catch (IOException e) {
             log.error("FFmpeg 프로세스 시작 실패", e);
             throw ServiceException.from(ExceptionCode.FFMPEG_PROCESS_ERROR);
+        }
+    }
+
+    public void stopStreaming(String name) {
+        Path hlsDir = Paths.get(OUTPUT_DIR, "hls", name);
+        Path hlsAudioDir = Paths.get(OUTPUT_DIR, "hls_audio", name);
+
+        try {
+            deleteDirectoryRecursively(hlsDir);
+            deleteDirectoryRecursively(hlsAudioDir);
+            log.info("스트림 폴더 정리 완료: {}", name);
+        } catch (IOException e) {
+            log.error("폴더 정리 중 오류 발생: {}", name, e);
+        }
+    }
+
+    private void deleteDirectoryRecursively(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Files.walk(path)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
         }
     }
 }
