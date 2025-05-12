@@ -17,8 +17,8 @@ public class StreamingController {
     private final StreamingService streamingService;
 
     @PostMapping("/start")
-    public ResponseEntity<ResponseBody<Void>> startStream(@RequestParam("name") String streamKey) {
-        streamingService.startStreaming(streamKey);
+    public ResponseEntity<ResponseBody<Void>> startStream(@RequestParam("name") String name) {
+        streamingService.startStreaming(name);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 }

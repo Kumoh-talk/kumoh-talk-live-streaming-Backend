@@ -15,8 +15,10 @@ public enum ExceptionCode {
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C005","허용하지 않는 method"),
 
 
-    // auth
-    INVALID_STREAMKEY(HttpStatus.UNAUTHORIZED, "A001", "허용하지 않는 스트림 키"),
+    // streaming
+    INVALID_STREAM_FORMAT(HttpStatus.FORBIDDEN, "A001", "잘못된 RTMP 주소 요청"),
+    INVALID_STREAM_KEY(HttpStatus.FORBIDDEN, "A002", "허용하지 않는 스트림 키"),
+    FFMPEG_PROCESS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "A003", "FFmpeg 프로세스 실행 실패"),
 
     ;
 

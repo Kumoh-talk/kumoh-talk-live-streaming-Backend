@@ -18,18 +18,18 @@ RUN gradle build -x test
 FROM openjdk:21-slim
 WORKDIR /app
 
+# app log 디렉토리 생성 및 권한 추가
+RUN mkdir -p /app/logs && chown -R www-data:www-data /app/logs
+
 # Add non-root user
-RUN addgroup --system javauser && adduser --system --group javauser
+USER www-data
 
 # Set ownership and switch to non-root user
-COPY --from=builder --chown=javauser:javauser /app/build/libs/streaming-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder --chown=www-data:www-data /app/build/libs/streaming-0.0.1-SNAPSHOT.jar app.jar
 
 # HLS 및 PID 경로 생성 및 권한 설정
 RUN mkdir -p /tmp/hls /tmp/hls_audio /tmp/pids && \
-    chown -R javauser:javauser /tmp/hls /tmp/hls_audio /tmp/pids
-
-# app log 디렉토리 생성 및 권한 추가
-RUN mkdir -p /app/logs && chown -R javauser:javauser /app/logs
+    chown -R www-data:www-data /tmp/hls /tmp/hls_audio /tmp/pids
 
 # 🛠️ root 권한으로 전환
 USER root
@@ -42,7 +42,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # 🛠️ 다시 비-루트 사용자로 전환
-USER javauser
+USER www-data
 
 # Configure JVM options
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
