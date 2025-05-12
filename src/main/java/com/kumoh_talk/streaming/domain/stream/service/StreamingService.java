@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 
 @Slf4j
@@ -54,17 +55,23 @@ public class StreamingService {
         String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
         String outputDir = "/tmp";
 
+        String hlsDir = outputDir + "/hls/" + name;
+        String hlsAudioDir = outputDir + "/hls_audio/" + name;
+
+        new File(hlsDir).mkdirs();
+        new File(hlsAudioDir).mkdirs();
+
         // FFmpeg 명령 (HLS + Audio 추출 동시)
         String[] cmd = {
                 "ffmpeg", "-i", rtmpUrl,
                 "-map", "0:v:0", "-map", "0:a:0",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
-                "-hls_time", "2", "-hls_list_size", "10", "-hls_flags", "delete_segments",
-                outputDir + "/hls/" + name + ".m3u8",
+                "-hls_time", "1", "-hls_list_size", "6", "-hls_flags", "delete_segments",
+                hlsDir + "/index.m3u8",
 
                 "-map", "0:a:0", "-vn", "-c:a", "aac", "-f", "hls",
-                "-hls_time", "2", "-hls_list_size", "10", "-hls_flags", "delete_segments",
-                outputDir + "/hls_audio/" + name + ".m3u8"
+                "-hls_time", "1", "-hls_list_size", "6", "-hls_flags", "delete_segments",
+                hlsAudioDir + "/index.m3u8"
         };
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
