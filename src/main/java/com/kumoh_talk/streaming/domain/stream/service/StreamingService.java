@@ -44,7 +44,7 @@ public class StreamingService {
 
         checkStreamKey(streamKey);
 
-        convertRtmpToHlsWithAudio(name);
+//        convertRtmpToHlsWithAudio(name);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
