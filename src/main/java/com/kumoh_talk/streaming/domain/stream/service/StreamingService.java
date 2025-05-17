@@ -20,8 +20,13 @@ public class StreamingService {
 
     private static final String DESKTOP_TYPE = "desktop";
     private static final String WEBCAM_TYPE = "webcam";
+    private static final String STREAMING_TYPE_DELIMITER = "_";
 
-    private static final String OUTPUT_DIR = "/tmp";
+    private static final String HLS_OUTPUT_DIR = "/tmp/hls";
+    private static final String AUDIO_OUTPUT_DIR = "/tmp/hls_audio";
+
+    private static final Integer HLS_TIME = 1;
+    private static final Integer HLS_LIST_SIZE = 3;
 
     private static final String ALLOWED_STREAM_KEY = "hello";
 
@@ -34,7 +39,7 @@ public class StreamingService {
 
         log.info("stream name: {}", name);
 
-        String[] parts = name.split("_");
+        String[] parts = name.split(STREAMING_TYPE_DELIMITER);
 
         if (!isValidStreamFormat(parts)) {
             throw ServiceException.from(ExceptionCode.INVALID_STREAM_FORMAT);
@@ -66,8 +71,8 @@ public class StreamingService {
     private void convertRtmpToHlsWithAudio(String name) {
         String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
 
-        String hlsDir = OUTPUT_DIR + "/hls/" + name;
-        String hlsAudioDir = OUTPUT_DIR + "/hls_audio/" + name;
+        String hlsDir = String.join("/", HLS_OUTPUT_DIR, name);
+        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
 
         new File(hlsDir).mkdirs();
         new File(hlsAudioDir).mkdirs();
@@ -77,11 +82,15 @@ public class StreamingService {
                 "ffmpeg", "-i", rtmpUrl,
                 "-map", "0:v:0", "-map", "0:a:0",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
-                "-hls_time", "1", "-hls_list_size", "6", "-hls_flags", "delete_segments",
+                "-hls_time", HLS_TIME.toString(),
+                "-hls_list_size", HLS_LIST_SIZE.toString(),
+                "-hls_flags", "delete_segments",
                 hlsDir + "/index.m3u8",
 
                 "-map", "0:a:0", "-vn", "-c:a", "aac", "-f", "hls",
-                "-hls_time", "1", "-hls_list_size", "6", "-hls_flags", "delete_segments",
+                "-hls_time", HLS_TIME.toString(),
+                "-hls_list_size", HLS_LIST_SIZE.toString(),
+                "-hls_flags", "delete_segments",
                 hlsAudioDir + "/index.m3u8"
         };
 
@@ -96,8 +105,8 @@ public class StreamingService {
     }
 
     public void stopStreaming(String name) {
-        Path hlsDir = Paths.get(OUTPUT_DIR, "hls", name);
-        Path hlsAudioDir = Paths.get(OUTPUT_DIR, "hls_audio", name);
+        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, name);
+        Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
 
         try {
             deleteDirectoryRecursively(hlsDir);
