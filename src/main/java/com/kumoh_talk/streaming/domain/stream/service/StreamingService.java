@@ -13,20 +13,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 
+import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StreamingService {
-
-    private static final String DESKTOP_TYPE = "desktop";
-    private static final String WEBCAM_TYPE = "webcam";
-    private static final String STREAMING_TYPE_DELIMITER = "_";
-
-    private static final String HLS_OUTPUT_DIR = "/tmp/hls";
-    private static final String AUDIO_OUTPUT_DIR = "/tmp/hls_audio";
-
-    private static final Integer HLS_TIME = 1;
-    private static final Integer HLS_LIST_SIZE = 3;
 
     private static final String ALLOWED_STREAM_KEY = "hello";
 
