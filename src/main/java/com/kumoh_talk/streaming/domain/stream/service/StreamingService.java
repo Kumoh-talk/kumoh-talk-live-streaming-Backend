@@ -49,7 +49,7 @@ public class StreamingService {
 
         checkStreamKey(streamKey);
 
-//        convertRtmpToHlsWithAudio(name);
+        convertRtmpToHlsWithAudio(name, parts[1]);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
@@ -68,25 +68,31 @@ public class StreamingService {
         }
     }
 
-    private void convertRtmpToHlsWithAudio(String name) {
+    private void convertRtmpToHlsWithAudio(String name, String type) {
         String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
 
         String hlsDir = String.join("/", HLS_OUTPUT_DIR, name);
-        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
 
-        new File(hlsDir).mkdirs();
-        new File(hlsAudioDir).mkdirs();
-
-        // FFmpeg 명령 (HLS + Audio 추출 동시)
-        String[] cmd = {
+        String[] videoCmd = {
                 "ffmpeg", "-i", rtmpUrl,
                 "-map", "0:v:0", "-map", "0:a:0",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
-                hlsDir + "/index.m3u8",
+                hlsDir + "/index.m3u8"
+        };
 
+        startFfmpegProcess(videoCmd, hlsDir);
+
+        if (type.equals(WEBCAM_TYPE)) {
+            return;
+        }
+
+        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
+
+        String[] audioCmd = {
+                "ffmpeg", "-i", rtmpUrl,
                 "-map", "0:a:0", "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
@@ -94,12 +100,16 @@ public class StreamingService {
                 hlsAudioDir + "/index.m3u8"
         };
 
-        ProcessBuilder pb = new ProcessBuilder(cmd);
-        pb.inheritIO();
+        startFfmpegProcess(audioCmd, hlsAudioDir);
+    }
+
+    private void startFfmpegProcess(String[] command, String hlsDir) {
+        new File(hlsDir).mkdirs();
+
         try {
-            pb.start();
+            new ProcessBuilder(command).inheritIO().start();
         } catch (IOException e) {
-            log.error("FFmpeg 프로세스 시작 실패", e);
+            log.error("FFmpeg 프로세스 시작 실패({}): {}", hlsDir, e.getMessage());
             throw ServiceException.from(ExceptionCode.FFMPEG_PROCESS_ERROR);
         }
     }
