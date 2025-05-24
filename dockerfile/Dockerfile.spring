@@ -15,7 +15,7 @@ COPY src ./src
 RUN gradle build -x test
 
 # Runtime stage
-FROM openjdk:21-slim
+FROM kumohtalk-streaming-openjdk
 WORKDIR /app
 
 # app log 디렉토리 생성 및 권한 추가
@@ -30,19 +30,6 @@ COPY --from=builder --chown=www-data:www-data /app/build/libs/streaming-0.0.1-SN
 # HLS 및 PID 경로 생성 및 권한 설정
 RUN mkdir -p /tmp/hls /tmp/hls_audio /tmp/pids && \
     chown -R www-data:www-data /tmp/hls /tmp/hls_audio /tmp/pids
-
-# 🛠️ root 권한으로 전환
-USER root
-
-# curl, ffmpeg 설치
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl \
-        ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
-
-# 🛠️ 다시 비-루트 사용자로 전환
-USER www-data
 
 # Configure JVM options
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
