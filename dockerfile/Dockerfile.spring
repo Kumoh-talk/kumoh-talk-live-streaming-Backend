@@ -21,6 +21,10 @@ WORKDIR /app
 # app log 디렉토리 생성 및 권한 추가
 RUN mkdir -p /app/logs && chown -R www-data:www-data /app/logs
 
+# application.yml 복사
+RUN mkdir -p /app/resources && chown -R www-data:www-data /app/resources
+COPY application.yml /app/resources/application.yml
+
 # Add non-root user
 USER www-data
 
@@ -39,4 +43,4 @@ HEALTHCHECK --interval=30s --timeout=3s \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-Dspring.config.name=application", "-Dspring.config.location=file:/app/resources/application.yml", "-jar", "app.jar"]
