@@ -9,6 +9,8 @@ services:
     container_name: spring
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     volumes:
       - ${HLS_PATH}/hls:/tmp/hls
       - ${HLS_PATH}/hls_audio:/tmp/hls_audio
