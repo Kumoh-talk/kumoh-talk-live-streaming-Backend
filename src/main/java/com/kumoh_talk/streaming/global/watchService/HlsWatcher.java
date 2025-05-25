@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.global.watchService;
 
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
+import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class HlsWatcher implements Runnable {
     private final FileEventHandler fileEventHandler;
     private volatile boolean watching;
 
+    @Builder
     public HlsWatcher(String directoryPath, FileEventHandler fileEventHandler) {
         this.pathToWatch = Paths.get(directoryPath);
         this.fileEventHandler = fileEventHandler;

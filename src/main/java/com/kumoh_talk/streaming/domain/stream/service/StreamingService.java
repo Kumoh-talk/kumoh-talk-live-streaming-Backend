@@ -2,6 +2,8 @@ package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
+import com.kumoh_talk.streaming.global.file.service.S3Service;
+import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 @Service
 @RequiredArgsConstructor
 public class StreamingService {
+
+    private final S3Service s3Service;
 
     private static final String ALLOWED_STREAM_KEY = "hello";
 
@@ -63,7 +67,7 @@ public class StreamingService {
     private void convertRtmpToHlsWithAudio(String name, String type) {
         String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
 
-        String hlsDir = String.join("/", HLS_OUTPUT_DIR, name);
+        String hlsDir = HLS_OUTPUT_DIR + "/" + name;
 
         String[] videoCmd = {
                 "ffmpeg", "-i", rtmpUrl,
@@ -76,6 +80,7 @@ public class StreamingService {
         };
 
         startFfmpegProcess(videoCmd, hlsDir);
+        startWatcher(hlsDir);
 
         if (type.equals(WEBCAM_TYPE)) {
             return;
@@ -106,9 +111,27 @@ public class StreamingService {
         }
     }
 
+    private void startWatcher(String dirPath) {
+        HlsWatcher.FileEventHandler handler = filePath -> {
+            log.info("새 파일 감지됨: {}", filePath);
+            s3Service.uploadHlsFile(filePath);
+        };
+
+        HlsWatcher watcher = HlsWatcher.builder()
+                .directoryPath(dirPath)
+                .fileEventHandler(handler)
+                .build();
+
+        Thread watcherThread = new Thread(watcher);
+        watcherThread.setDaemon(true);
+        watcherThread.start();
+    }
+
     public void stopStreaming(String name) {
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, name);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
+
+        // TODO. 디렉토리 감시 종료 및 데이터베이스 저장
 
         try {
             deleteDirectoryRecursively(hlsDir);
