@@ -19,6 +19,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     networks:
       - app-network
 
@@ -34,6 +39,9 @@ services:
     volumes:
       - ${HLS_PATH}/hls:/tmp/hls
       - ${HLS_PATH}/hls_audio:/tmp/hls_audio
+    depends_on:
+      spring:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -50,7 +58,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: [ "CMD", "mysql", "-uroot", "-p${MYSQL_ROOT_PASSWORD}", "-e", "SELECT 1" ]
       interval: 10s
       timeout: 5s
       retries: 5
