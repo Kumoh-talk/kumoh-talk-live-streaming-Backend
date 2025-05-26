@@ -77,7 +77,6 @@ public class StreamingService {
         };
 
         startFfmpegProcess(videoCmd, hlsDir);
-        startWatcher(hlsDir);
 
         if (type.equals(WEBCAM_TYPE)) {
             return;
