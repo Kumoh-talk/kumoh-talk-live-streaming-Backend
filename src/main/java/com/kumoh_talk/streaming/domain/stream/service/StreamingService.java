@@ -68,7 +68,7 @@ public class StreamingService {
 
         String[] videoCmd = {
                 "ffmpeg", "-i", rtmpUrl,
-                "-map", "0:v:0", "-map", "0:a:0",
+                "-map", "0:v:0", "-map", "0:a:0?",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
@@ -87,7 +87,7 @@ public class StreamingService {
 
         String[] audioCmd = {
                 "ffmpeg", "-i", rtmpUrl,
-                "-map", "0:a:0", "-vn", "-c:a", "aac", "-f", "hls",
+                "-map", "0:a:0?", "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
