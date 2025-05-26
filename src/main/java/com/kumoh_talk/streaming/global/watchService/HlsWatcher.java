@@ -7,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import static com.kumoh_talk.streaming.global.constant.StreamingConstants.HLS_TIME;
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 
 @Slf4j
 public class HlsWatcher implements Runnable {
@@ -28,6 +30,8 @@ public class HlsWatcher implements Runnable {
 
     @Override
     public void run() {
+        waitForHlsManifest(Duration.ofSeconds(40));
+
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             pathToWatch.register(watchService, ENTRY_CREATE);
 
@@ -58,6 +62,30 @@ public class HlsWatcher implements Runnable {
             }
         } catch (IOException | InterruptedException e) {
             throw ServiceException.from(ExceptionCode.UNEXPECTED_SERVER_ERROR);
+        }
+    }
+
+    private void waitForHlsManifest(Duration timeout) {
+        Path manifestPath = pathToWatch.resolve("index.m3u8");
+        Instant start = Instant.now();
+
+        while (Duration.between(start, Instant.now()).compareTo(timeout) < 0) {
+            if (Files.exists(manifestPath)) {
+                log.info("HLS manifest created: {}", manifestPath);
+                return;
+            }
+            threadSleep(500);
+        }
+
+        log.error("HLS time out ㅠㅠ");
+        throw ServiceException.from(ExceptionCode.HLS_STREAM_TIMEOUT);
+    }
+
+    private void threadSleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            log.error("스레드 대기 실패: {}", e.getMessage());
         }
     }
 

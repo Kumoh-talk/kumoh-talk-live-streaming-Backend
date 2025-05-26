@@ -27,12 +27,6 @@ public class StreamingService {
     private static final String ALLOWED_STREAM_KEY = "hello";
 
     public void startStreaming(String name) {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.error("스레드 대기 실패: {}", e.getMessage());
-        }
-
         log.info("stream name: {}", name);
 
         String[] parts = name.split(STREAMING_TYPE_DELIMITER);
@@ -46,6 +40,9 @@ public class StreamingService {
         checkStreamKey(streamKey);
 
         convertRtmpToHlsWithAudio(name, parts[1]);
+
+        String hlsDir = HLS_OUTPUT_DIR + "/" + name;
+        startWatcher(hlsDir);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
