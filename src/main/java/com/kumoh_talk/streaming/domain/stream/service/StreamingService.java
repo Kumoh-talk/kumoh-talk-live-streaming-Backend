@@ -153,12 +153,12 @@ public class StreamingService {
 
         StringBuilder m3u8 = new StringBuilder();
         m3u8.append("#EXTM3U\n");
-        m3u8.append("#EXT-X-VERSION:3\n");
-        m3u8.append("#EXT-X-TARGETDURATION:2\n");
+        m3u8.append("#EXT-X-VERSION:6\n");
+        m3u8.append(String.format("#EXT-X-TARGETDURATION:%d\n", HLS_TIME));
         m3u8.append("#EXT-X-MEDIA-SEQUENCE:0\n");
 
         for (String ts : tsList) {
-            m3u8.append("#EXTINF:1.000,\n");
+            m3u8.append(String.format("#EXTINF:%.3f,\n", HLS_TIME.doubleValue()));
             m3u8.append(ts.substring(ts.lastIndexOf("/") + 1)).append("\n");
         }
 
