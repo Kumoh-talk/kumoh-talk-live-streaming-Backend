@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 
@@ -22,9 +25,11 @@ import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 @RequiredArgsConstructor
 public class StreamingService {
 
+    private static final String ALLOWED_STREAM_KEY = "hello";
+
     private final S3Service s3Service;
 
-    private static final String ALLOWED_STREAM_KEY = "hello";
+    private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
     public void startStreaming(String name) {
         log.info("stream name: {}", name);
@@ -41,7 +46,7 @@ public class StreamingService {
 
         convertRtmpToHlsWithAudio(name, parts[1]);
 
-        String hlsDir = HLS_OUTPUT_DIR + "/" + name;
+        Path hlsDir = Path.of(HLS_OUTPUT_DIR, name);
         startWatcher(hlsDir);
     }
 
@@ -107,7 +112,7 @@ public class StreamingService {
         }
     }
 
-    private void startWatcher(String dirPath) {
+    private void startWatcher(Path dirPath) {
         HlsWatcher.FileEventHandler handler = filePath -> {
             log.info("새 파일 감지됨: {}", filePath);
             s3Service.uploadHlsFile(filePath);
@@ -121,11 +126,16 @@ public class StreamingService {
         Thread watcherThread = new Thread(watcher);
         watcherThread.setDaemon(true);
         watcherThread.start();
+
+        watcherMap.put(dirPath, watcher);
     }
 
     public void stopStreaming(String name) {
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, name);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
+
+        watcherMap.get(hlsDir).stopWatching();
+        createAndUploadM3U8(name);
 
         // TODO. 디렉토리 감시 종료 및 데이터베이스 저장
 
@@ -136,6 +146,25 @@ public class StreamingService {
         } catch (IOException e) {
             log.error("폴더 정리 중 오류 발생: {}", name, e);
         }
+    }
+
+    private void createAndUploadM3U8(String name) {
+        List<String> tsList = s3Service.getFileList(name);
+
+        StringBuilder m3u8 = new StringBuilder();
+        m3u8.append("#EXTM3U\n");
+        m3u8.append("#EXT-X-VERSION:3\n");
+        m3u8.append("#EXT-X-TARGETDURATION:2\n");
+        m3u8.append("#EXT-X-MEDIA-SEQUENCE:0\n");
+
+        for (String ts : tsList) {
+            m3u8.append("#EXTINF:1.000,\n");
+            m3u8.append(ts.substring(ts.lastIndexOf("/") + 1)).append("\n");
+        }
+
+        m3u8.append("#EXT-X-ENDLIST\n");
+
+        s3Service.uploadM3U8File(name, m3u8.toString().getBytes());
     }
 
     private void deleteDirectoryRecursively(Path path) throws IOException {

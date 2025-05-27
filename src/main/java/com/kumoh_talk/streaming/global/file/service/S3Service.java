@@ -10,10 +10,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.nio.file.Path;
+import java.util.List;
 
+import static com.kumoh_talk.streaming.global.constant.StreamingConstants.M3U8_NAME;
 import static com.kumoh_talk.streaming.global.constant.StreamingConstants.VOD_PATH;
 
 @Slf4j
@@ -53,6 +57,42 @@ public class S3Service {
 
             s3Client.putObject(putObjectsRequest, RequestBody.fromFile(filePath));
             log.info("파일 업로드 완료: {}", filePath);
+        }
+    }
+
+    public void uploadM3U8File(String streamKey, byte[] bytes) {
+        String objectName = String.join("/", VOD_PATH, streamKey, M3U8_NAME);
+        this.putObjectRequestFromStream(objectName, bytes);
+    }
+
+    private void putObjectRequestFromStream(String objectName, byte[] bytes) {
+        try (
+                S3Client s3Client = createS3Client();
+        ) {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(objectName)
+                    .build();
+
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
+            log.info("m3u8 파일 업로드 완료: {}", objectName);
+        }
+    }
+
+    public List<String> getFileList(String streamKey) {
+        try (
+                S3Client s3Client = createS3Client();
+        ) {
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucket)
+                    .prefix(VOD_PATH + "/" + streamKey)
+                    .build();
+
+            return s3Client.listObjectsV2(request)
+                    .contents()
+                    .stream()
+                    .map(S3Object::key)
+                    .toList();
         }
     }
 

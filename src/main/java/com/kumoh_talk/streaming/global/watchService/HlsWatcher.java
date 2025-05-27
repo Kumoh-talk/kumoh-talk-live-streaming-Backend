@@ -22,8 +22,8 @@ public class HlsWatcher implements Runnable {
     private volatile boolean watching;
 
     @Builder
-    public HlsWatcher(String directoryPath, FileEventHandler fileEventHandler) {
-        this.pathToWatch = Paths.get(directoryPath);
+    public HlsWatcher(Path directoryPath, FileEventHandler fileEventHandler) {
+        this.pathToWatch = directoryPath;
         this.fileEventHandler = fileEventHandler;
         this.watching = true;
     }
