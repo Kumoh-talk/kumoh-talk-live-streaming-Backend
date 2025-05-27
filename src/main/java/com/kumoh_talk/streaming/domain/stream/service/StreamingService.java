@@ -67,7 +67,7 @@ public class StreamingService {
         String hlsDir = HLS_OUTPUT_DIR + "/" + name;
 
         String[] videoCmd = {
-                "ffmpeg", "-i", rtmpUrl,
+                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
                 "-map", "0:v:0", "-map", "0:a:0?",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
@@ -85,7 +85,7 @@ public class StreamingService {
         String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
 
         String[] audioCmd = {
-                "ffmpeg", "-i", rtmpUrl,
+                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
                 "-map", "0:a:0?", "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),

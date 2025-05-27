@@ -30,13 +30,13 @@ public class HlsWatcher implements Runnable {
 
     @Override
     public void run() {
-        waitForHlsManifest(Duration.ofSeconds(40));
+        waitForHlsSegment(Duration.ofSeconds(40));
 
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             pathToWatch.register(watchService, ENTRY_CREATE);
 
             while (watching) {
-                WatchKey key = watchService.poll(HLS_TIME * 2, TimeUnit.SECONDS);
+                WatchKey key = watchService.poll(HLS_TIME * 3L + 10, TimeUnit.SECONDS);
                 if (key == null) {
                     log.info("파일 생성 감지 자동 종료: {}", pathToWatch);
                     break;
@@ -65,19 +65,22 @@ public class HlsWatcher implements Runnable {
         }
     }
 
-    private void waitForHlsManifest(Duration timeout) {
-        Path manifestPath = pathToWatch.resolve("index.m3u8");
+    private void waitForHlsSegment(Duration timeout) {
         Instant start = Instant.now();
 
         while (Duration.between(start, Instant.now()).compareTo(timeout) < 0) {
-            if (Files.exists(manifestPath)) {
-                log.info("HLS manifest created: {}", manifestPath);
-                return;
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(pathToWatch, "*.ts")) {
+                if (stream.iterator().hasNext()) {
+                    log.info("{}: HLS 세그먼트 감지됨", pathToWatch);
+                    return;
+                }
+            } catch (IOException e) {
+                log.error("HLS 디렉토리 접근 실패: {}", e.getMessage());
             }
             threadSleep(500);
         }
 
-        log.error("HLS time out ㅠㅠ");
+        log.error("{}: HLS time out", pathToWatch);
         throw ServiceException.from(ExceptionCode.HLS_STREAM_TIMEOUT);
     }
 
