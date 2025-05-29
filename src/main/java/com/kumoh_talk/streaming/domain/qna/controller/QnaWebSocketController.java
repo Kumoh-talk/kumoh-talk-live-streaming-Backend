@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.kumoh_talk.streaming.domain.qna.dto.QnaCreateRequestDto;
-import com.kumoh_talk.streaming.domain.qna.dto.QnaㅇeleteRequestDto;
+import com.kumoh_talk.streaming.domain.qna.dto.QnaDeleteRequestDto;
 import com.kumoh_talk.streaming.domain.qna.service.QnaWebSocketService;
 
 @Slf4j
