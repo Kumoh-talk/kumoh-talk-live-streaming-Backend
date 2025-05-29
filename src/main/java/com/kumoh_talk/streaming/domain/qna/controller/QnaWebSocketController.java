@@ -42,6 +42,6 @@ public class QnaWebSocketController {
 		) {
 				template.convertAndSend("/qna/streaming/" + streamId + "/delete",
 						qnaDeleteRequestDto);
-				log.info("qna 메시지 삭제 - {}", qnaDeleteRequestDto.content());
+				log.info("qna 메시지 삭제 - {}", qnaDeleteRequestDto.qnaId());
 		}
 }

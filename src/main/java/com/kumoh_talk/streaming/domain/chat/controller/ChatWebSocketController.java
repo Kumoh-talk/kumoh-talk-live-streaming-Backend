@@ -28,7 +28,7 @@ public class ChatWebSocketController {
 				@DestinationVariable Long streamId,
 				StompHeaderAccessor headerAccessor
 		) {
-				template.convertAndSend("/chat/streaming/", + streamId, "/add",
+				template.convertAndSend("/chat/streaming/" + streamId + "/add",
 						chatCreateRequestDto);
 				log.info("채팅 메시지 전송 - {}", chatCreateRequestDto.content());
 		}
