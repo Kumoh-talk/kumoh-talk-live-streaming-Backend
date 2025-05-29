@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.domain.chat.dto;
+package com.kumoh_talk.streaming.domain.qna.dto;
 
 import java.util.List;
 
