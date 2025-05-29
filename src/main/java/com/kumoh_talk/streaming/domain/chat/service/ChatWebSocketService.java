@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.domain.socket.service;
+package com.kumoh_talk.streaming.domain.chat.service;
 
 import org.springframework.stereotype.Service;
 

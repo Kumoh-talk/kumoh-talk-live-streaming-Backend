@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.domain.socket.controller;
+package com.kumoh_talk.streaming.domain.chat.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,8 +11,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.kumoh_talk.streaming.domain.socket.dto.ChatCreateRequestDto;
-import com.kumoh_talk.streaming.domain.socket.service.ChatWebSocketService;
+import com.kumoh_talk.streaming.domain.chat.dto.ChatCreateRequestDto;
+import com.kumoh_talk.streaming.domain.chat.service.ChatWebSocketService;
 
 @Slf4j
 @Controller
@@ -22,15 +22,14 @@ public class ChatWebSocketController {
 		private final SimpMessagingTemplate template;
 		private final ChatWebSocketService chatWebSocketService;
 
-		@MessageMapping("/streaming/{streamId}")
-		public void sendMessage(
-				@Payload @Valid ChatCreateRequestDto chatCreateRequestDto
+		@MessageMapping("/streaming/{streamId}/add-chat")
+		public void addChat(
+				@Payload @Valid ChatCreateRequestDto chatCreateRequestDto,
+				@DestinationVariable Long streamId,
+				StompHeaderAccessor headerAccessor
 		) {
-				template.convertAndSend("/chat/streaming/2/message",
+				template.convertAndSend("/chat/streaming/", + streamId, "/add",
 						chatCreateRequestDto);
 				log.info("채팅 메시지 전송 - {}", chatCreateRequestDto.content());
-
-				template.convertAndSend("/chat/streaming/2");
-				log.info("팀스페이스 전역 채팅 메시지 수신 - 팀스페이스 Id: 1, 수신 메시지 - {}", chatCreateRequestDto.content());
 		}
 }
