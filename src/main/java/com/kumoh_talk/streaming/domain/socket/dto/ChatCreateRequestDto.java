@@ -11,6 +11,8 @@ import com.kumoh_talk.streaming.global.config.NoStrip;
 
 public record ChatCreateRequestDto(
 		@NotNull
+		String name,
+		@NotNull
 		@NoStrip
 		@Size(max = 200, message = "채팅 글자 수는 200자 이하여야 합니다.")
 		String content

@@ -26,11 +26,11 @@ public class ChatWebSocketController {
 		public void sendMessage(
 				@Payload @Valid ChatCreateRequestDto chatCreateRequestDto
 		) {
-				template.convertAndSend("/chat/streaming/1/messages",
+				template.convertAndSend("/chat/streaming/2/message",
 						chatCreateRequestDto);
 				log.info("채팅 메시지 전송 - {}", chatCreateRequestDto.content());
 
-				template.convertAndSend("/chat/streaming/1");
+				template.convertAndSend("/chat/streaming/2");
 				log.info("팀스페이스 전역 채팅 메시지 수신 - 팀스페이스 Id: 1, 수신 메시지 - {}", chatCreateRequestDto.content());
 		}
 }
