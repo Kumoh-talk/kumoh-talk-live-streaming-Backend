@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 
 import com.kumoh_talk.streaming.global.config.NoStrip;
 
-public record QnaDeleteRequestDto(
+public record QnaLikedRequestDto(
 		@NotNull
 		int qnaId
 ) {
