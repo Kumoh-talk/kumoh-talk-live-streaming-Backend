@@ -19,6 +19,7 @@ public enum ExceptionCode {
     INVALID_STREAM_KEY(HttpStatus.FORBIDDEN, "V002", "허용하지 않는 스트림 키"),
     FFMPEG_PROCESS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "V003", "FFmpeg 프로세스 실행 실패"),
     DIRECTORY_WATCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "V004", "디렉토리 감시 실패"),
+    HLS_STREAM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "V005", "HLS manifest 파일 생성 실패"),
 
     ;
 

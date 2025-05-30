@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 
@@ -22,17 +25,13 @@ import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 @RequiredArgsConstructor
 public class StreamingService {
 
-    private final S3Service s3Service;
-
     private static final String ALLOWED_STREAM_KEY = "hello";
 
-    public void startStreaming(String name) {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.error("스레드 대기 실패: {}", e.getMessage());
-        }
+    private final S3Service s3Service;
 
+    private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
+
+    public void startStreaming(String name) {
         log.info("stream name: {}", name);
 
         String[] parts = name.split(STREAMING_TYPE_DELIMITER);
@@ -46,6 +45,9 @@ public class StreamingService {
         checkStreamKey(streamKey);
 
         convertRtmpToHlsWithAudio(name, parts[1]);
+
+        Path hlsDir = Path.of(HLS_OUTPUT_DIR, name);
+        startWatcher(hlsDir);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
@@ -70,8 +72,8 @@ public class StreamingService {
         String hlsDir = HLS_OUTPUT_DIR + "/" + name;
 
         String[] videoCmd = {
-                "ffmpeg", "-i", rtmpUrl,
-                "-map", "0:v:0", "-map", "0:a:0",
+                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
+                "-map", "0:v:0", "-map", "0:a:0?",
                 "-c:v", "copy", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
@@ -80,7 +82,6 @@ public class StreamingService {
         };
 
         startFfmpegProcess(videoCmd, hlsDir);
-        startWatcher(hlsDir);
 
         if (type.equals(WEBCAM_TYPE)) {
             return;
@@ -89,8 +90,8 @@ public class StreamingService {
         String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
 
         String[] audioCmd = {
-                "ffmpeg", "-i", rtmpUrl,
-                "-map", "0:a:0", "-vn", "-c:a", "aac", "-f", "hls",
+                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
+                "-map", "0:a:0?", "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
@@ -111,7 +112,7 @@ public class StreamingService {
         }
     }
 
-    private void startWatcher(String dirPath) {
+    private void startWatcher(Path dirPath) {
         HlsWatcher.FileEventHandler handler = filePath -> {
             log.info("새 파일 감지됨: {}", filePath);
             s3Service.uploadHlsFile(filePath);
@@ -125,11 +126,16 @@ public class StreamingService {
         Thread watcherThread = new Thread(watcher);
         watcherThread.setDaemon(true);
         watcherThread.start();
+
+        watcherMap.put(dirPath, watcher);
     }
 
     public void stopStreaming(String name) {
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, name);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
+
+        watcherMap.get(hlsDir).stopWatching();
+        createAndUploadM3U8(name);
 
         // TODO. 디렉토리 감시 종료 및 데이터베이스 저장
 
@@ -140,6 +146,25 @@ public class StreamingService {
         } catch (IOException e) {
             log.error("폴더 정리 중 오류 발생: {}", name, e);
         }
+    }
+
+    private void createAndUploadM3U8(String name) {
+        List<String> tsList = s3Service.getFileList(name);
+
+        StringBuilder m3u8 = new StringBuilder();
+        m3u8.append("#EXTM3U\n");
+        m3u8.append("#EXT-X-VERSION:6\n");
+        m3u8.append(String.format("#EXT-X-TARGETDURATION:%d\n", HLS_TIME));
+        m3u8.append("#EXT-X-MEDIA-SEQUENCE:0\n");
+
+        for (String ts : tsList) {
+            m3u8.append(String.format("#EXTINF:%.3f,\n", HLS_TIME.doubleValue()));
+            m3u8.append(ts.substring(ts.lastIndexOf("/") + 1)).append("\n");
+        }
+
+        m3u8.append("#EXT-X-ENDLIST\n");
+
+        s3Service.uploadM3U8File(name, m3u8.toString().getBytes());
     }
 
     private void deleteDirectoryRecursively(Path path) throws IOException {

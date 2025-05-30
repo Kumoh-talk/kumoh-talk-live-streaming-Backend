@@ -12,7 +12,8 @@ public final class StreamingConstants {
     public static final Integer HLS_TIME = 1;
     public static final Integer HLS_LIST_SIZE = 3;
 
-    public static final String VOD_PATH = "/video";
+    public static final String VOD_PATH = "video";
+    public static final String M3U8_NAME = "index.m3u8";
 
     private StreamingConstants() {}
 }
