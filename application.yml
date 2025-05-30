@@ -30,3 +30,8 @@ aws:
     credentials:
       accessKey: ${BUCKET_ACCESS_KEY}
       secretKey: ${BUCKET_SECRET_KEY}
+  cloudfront:
+    domainName: ${CLOUDFRONT_DOMAIN_NAME}
+    credentials:
+      publicKey: ${CLOUDFRONT_PUBLIC_KEY_ID}
+      privateKeyPath: ${CLOUDFRONT_PRIVATE_KEY_FULL_PATH}

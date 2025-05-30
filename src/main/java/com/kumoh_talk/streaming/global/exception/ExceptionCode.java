@@ -20,6 +20,8 @@ public enum ExceptionCode {
     FFMPEG_PROCESS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "V003", "FFmpeg 프로세스 실행 실패"),
     DIRECTORY_WATCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "V004", "디렉토리 감시 실패"),
     HLS_STREAM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "V005", "HLS manifest 파일 생성 실패"),
+    VOD_NOT_FOUND(HttpStatus.NOT_FOUND, "V006", "존재하지 않는 VOD ID"),
+    SIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "V007", "cloudfront signed url 생성 실패"),
 
     ;
 

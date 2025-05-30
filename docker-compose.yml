@@ -14,6 +14,7 @@ services:
     volumes:
       - ${HLS_PATH}/hls:/tmp/hls
       - ${HLS_PATH}/hls_audio:/tmp/hls_audio
+      - ${HOST_CLOUDFRONT_PRIVATE_KEY_PATH}:${CLOUDFRONT_PRIVATE_KEY_PATH}
     depends_on:
       mysql:
         condition: service_healthy

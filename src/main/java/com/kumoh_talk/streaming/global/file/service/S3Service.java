@@ -1,6 +1,7 @@
 package com.kumoh_talk.streaming.global.file.service;
 
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
+import com.kumoh_talk.streaming.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,12 +11,16 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
+import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.kumoh_talk.streaming.global.constant.StreamingConstants.M3U8_NAME;
@@ -37,6 +42,17 @@ public class S3Service {
 
     @Value("${aws.s3.region}")
     private Region region;
+
+    @Value("${aws.cloudfront.domainName}")
+    private String distributionDomainName;
+
+    @Value("${aws.cloudfront.credentials.publicKey}")
+    private String publicKeyId;
+
+    @Value("${aws.cloudfront.credentials.privateKeyPath}")
+    private Path privateKeyPath;
+
+    private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
 
     public void uploadHlsFile(Path filePath) {
         int dirCount = filePath.getNameCount();
@@ -106,6 +122,32 @@ public class S3Service {
                     .map(S3Object::key)
                     .toList();
         }
+    }
+
+    public String generateSignedUrl(String resourcePath) {
+        try {
+            CustomSignerRequest signerRequest = createCustomSignerRequest(resourcePath);
+            CloudFrontUtilities cloudFrontUtilities = CloudFrontUtilities.create();
+            return cloudFrontUtilities.getSignedUrlWithCustomPolicy(signerRequest).url();
+        } catch (Exception e) {
+            log.error("cloudfront signed-url 발급 중 오류 발생: {}", e.getMessage());
+            throw ServiceException.from(ExceptionCode.SIGNED_URL_GENERATION_FAILED);
+        }
+    }
+
+    private CustomSignerRequest createCustomSignerRequest(String resourcePath) throws Exception {
+        String cloudFrontUrl = distributionDomainName + "/" + resourcePath;
+        String resourceUrl = cloudFrontUrl + "/" + M3U8_NAME;
+        String resourceUrlPattern = cloudFrontUrl + "/*";
+        Instant expireDate = Instant.now().plus(GET_REQUEST_DURATION_OF_MINUTES, ChronoUnit.MINUTES);
+
+        return CustomSignerRequest.builder()
+                .resourceUrl(resourceUrl)
+                .resourceUrlPattern(resourceUrlPattern)
+                .privateKey(privateKeyPath)
+                .keyPairId(publicKeyId)
+                .expirationDate(expireDate)
+                .build();
     }
 
     private S3Client createS3Client() {
