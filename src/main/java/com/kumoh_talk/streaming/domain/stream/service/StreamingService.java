@@ -1,5 +1,7 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
+import com.kumoh_talk.streaming.domain.stream.entity.Vod;
+import com.kumoh_talk.streaming.domain.stream.repository.VodRepository;
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
@@ -28,6 +30,8 @@ public class StreamingService {
     private static final String ALLOWED_STREAM_KEY = "hello";
 
     private final S3Service s3Service;
+
+    private final VodRepository vodRepository;
 
     private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
@@ -142,7 +146,11 @@ public class StreamingService {
                 .toList();
         createAndUploadM3U8(name, tsList);
 
-        // TODO. 디렉토리 감시 종료 및 데이터베이스 저장
+        String streamKey = name.split(STREAMING_TYPE_DELIMITER)[0];
+        String type = name.split(STREAMING_TYPE_DELIMITER)[1];
+        if (type.equals(DESKTOP_TYPE)) {
+            saveVodEntity(streamKey, tsList.size() * HLS_TIME);
+        }
 
         try {
             deleteDirectoryRecursively(hlsDir);
@@ -159,6 +167,17 @@ public class StreamingService {
         return Integer.parseInt(numberPart);
     }
 
+    private void saveVodEntity(String streamKey, int seconds) {
+        Vod vod = Vod.builder()
+                // TODO. streamKey를 통해 조회하여 title, summary 하드코딩 제거
+                .title("JPA란 무엇인가")
+                .summary("(내용 요약 텍스트 전문이 들어갈 자리)")
+                .streamKey(streamKey)
+                .seconds(seconds)
+                .build();
+
+        vodRepository.save(vod);
+    }
 
     private void createAndUploadM3U8(String name, List<String> tsList) {
         StringBuilder m3u8 = new StringBuilder();
