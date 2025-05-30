@@ -78,6 +78,7 @@ public class StreamingService {
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
+                "-hls_segment_type", "mpegts",
                 hlsDir + "/index.m3u8"
         };
 
@@ -95,6 +96,7 @@ public class StreamingService {
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
+                "-hls_segment_type", "mpegts",
                 hlsAudioDir + "/index.m3u8"
         };
 
