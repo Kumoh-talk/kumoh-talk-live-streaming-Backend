@@ -34,6 +34,17 @@ public class QnaWebSocketController {
 				log.info("qna 메시지 전송 - {}", qnaCreateRequestDto.content());
 		}
 
+		@MessageMapping("/streaming/{streamId}/liked-qna")
+		public void likedQna(
+				@Payload @Valid QnaLikedRequestDto qnaLikedRequestDto,
+				@DestinationVariable Long streamId,
+				StompHeaderAccessor headerAccessor
+		) {
+				template.convertAndSend("/qna/streaming/" + streamId + "/liked",
+						qnaLikedRequestDto);
+				log.info("qna 메시지 전송 - {}", qnaLikedRequestDto.qnaId());
+		}
+
 		@MessageMapping("/streaming/{streamId}/delete-qna")
 		public void deleteQna(
 				@Payload @Valid QnaDeleteRequestDto qnaDeleteRequestDto,
