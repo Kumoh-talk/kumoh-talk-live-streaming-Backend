@@ -9,9 +9,10 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.HLS_TIME;
+import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 
 @Slf4j
@@ -19,12 +20,14 @@ public class HlsWatcher implements Runnable {
 
     private final Path pathToWatch;
     private final FileEventHandler fileEventHandler;
+    private final ThumbnailEventHandler thumbnailEventHandler;
     private volatile boolean watching;
 
     @Builder
-    public HlsWatcher(Path directoryPath, FileEventHandler fileEventHandler) {
+    public HlsWatcher(Path directoryPath, FileEventHandler fileEventHandler, ThumbnailEventHandler thumbnailEventHandler) {
         this.pathToWatch = directoryPath;
         this.fileEventHandler = fileEventHandler;
+        this.thumbnailEventHandler = thumbnailEventHandler;
         this.watching = true;
     }
 
@@ -70,8 +73,11 @@ public class HlsWatcher implements Runnable {
 
         while (Duration.between(start, Instant.now()).compareTo(timeout) < 0) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(pathToWatch, "*.ts")) {
-                if (stream.iterator().hasNext()) {
-                    log.info("{}: HLS 세그먼트 감지됨", pathToWatch);
+                Iterator<Path> iterator = stream.iterator();
+                if (iterator.hasNext()) {
+                    Path tsFilePath = iterator.next();
+                    log.info("{}: HLS 세그먼트 감지됨", tsFilePath);
+                    extractThumbnail(tsFilePath);
                     return;
                 }
             } catch (IOException e) {
@@ -84,6 +90,32 @@ public class HlsWatcher implements Runnable {
         throw ServiceException.from(ExceptionCode.HLS_STREAM_TIMEOUT);
     }
 
+    private void extractThumbnail(Path tsFilePath) {
+        String inputPath = tsFilePath.toAbsolutePath().toString();
+        Path outputPath = tsFilePath.getParent().resolve(THUMBNAIL_NAME);
+
+        String[] thumbnailCmd = {
+                "ffmpeg", "-y", // -y: 파일 덮어쓰기 허용
+                "-i", inputPath,
+                "-ss", "00:00:01",
+                "-frames:v", "1",
+                "-vf", "scale=" + THUMBNAIL_RESOLUTION,
+                "-pix_fmt", "yuv420p",
+                outputPath.toString()
+        };
+
+        try {
+            Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
+
+            if (process.waitFor() == 0) {
+                thumbnailEventHandler.handleThumbnail(outputPath);
+                log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("썸네일 생성 중 오류: {}", e.getMessage());
+        }
+    }
+
     private void threadSleep(int millis) {
         try {
             Thread.sleep(millis);
@@ -92,8 +124,14 @@ public class HlsWatcher implements Runnable {
         }
     }
 
+    @FunctionalInterface
     public interface FileEventHandler {
         void handleNewFile(Path filePath);
+    }
+
+    @FunctionalInterface
+    public interface ThumbnailEventHandler {
+        void handleThumbnail(Path filePath);
     }
 
     public void stopWatching() {

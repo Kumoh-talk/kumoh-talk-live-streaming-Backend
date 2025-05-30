@@ -113,14 +113,13 @@ public class StreamingService {
     }
 
     private void startWatcher(Path dirPath) {
-        HlsWatcher.FileEventHandler handler = filePath -> {
-            log.info("새 파일 감지됨: {}", filePath);
-            s3Service.uploadHlsFile(filePath);
-        };
+        HlsWatcher.FileEventHandler fileHandler = s3Service::uploadHlsFile;
+        HlsWatcher.ThumbnailEventHandler thumbnailHandler = s3Service::uploadHlsFile;
 
         HlsWatcher watcher = HlsWatcher.builder()
                 .directoryPath(dirPath)
-                .fileEventHandler(handler)
+                .fileEventHandler(fileHandler)
+                .thumbnailEventHandler(thumbnailHandler)
                 .build();
 
         Thread watcherThread = new Thread(watcher);
