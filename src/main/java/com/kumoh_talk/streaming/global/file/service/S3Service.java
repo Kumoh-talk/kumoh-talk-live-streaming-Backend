@@ -1,5 +1,6 @@
 package com.kumoh_talk.streaming.global.file.service;
 
+import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +44,14 @@ public class S3Service {
 
         String objectName = VOD_PATH + "/" + streamKeyAndFileName;
 
-        putObjectRequest(objectName, filePath);
+        this.putObjectRequest(objectName, filePath);
     }
 
     private void putObjectRequest(String objectName, Path filePath) {
+        this.putObjectRequest(objectName, filePath, false);
+    }
+
+    private void putObjectRequest(String objectName, Path filePath, boolean isRetry) {
         try (
                 S3Client s3Client = createS3Client();
         ) {
@@ -57,6 +62,13 @@ public class S3Service {
 
             s3Client.putObject(putObjectsRequest, RequestBody.fromFile(filePath));
             log.info("파일 업로드 완료: {}", filePath);
+        } catch (Exception e) {
+            if (!isRetry) {
+                log.warn("업로드 실패, 재시도 중...: {}", filePath);
+                putObjectRequest(objectName, filePath, true);
+            } else {
+                log.error("업로드 재시도 실패: {}", filePath, e);
+            }
         }
     }
 
