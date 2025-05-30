@@ -136,7 +136,11 @@ public class StreamingService {
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
 
         watcherMap.get(hlsDir).stopWatching();
-        createAndUploadM3U8(name);
+        List<String> tsList = s3Service.getFileList(name).stream()
+                .filter(path -> path.endsWith(".ts"))
+                .sorted(Comparator.comparingInt(this::extractIndex))
+                .toList();
+        createAndUploadM3U8(name, tsList);
 
         // TODO. 디렉토리 감시 종료 및 데이터베이스 저장
 
@@ -149,9 +153,14 @@ public class StreamingService {
         }
     }
 
-    private void createAndUploadM3U8(String name) {
-        List<String> tsList = s3Service.getFileList(name);
+    private int extractIndex(String tsPath) {
+        String filename = tsPath.substring(tsPath.lastIndexOf("/") + 1);
+        String numberPart = filename.replaceAll("\\D+", "");
+        return Integer.parseInt(numberPart);
+    }
 
+
+    private void createAndUploadM3U8(String name, List<String> tsList) {
         StringBuilder m3u8 = new StringBuilder();
         m3u8.append("#EXTM3U\n");
         m3u8.append("#EXT-X-VERSION:6\n");
