@@ -14,17 +14,21 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.M3U8_NAME;
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.VOD_PATH;
+import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 
 @Slf4j
 @Service
@@ -124,6 +128,34 @@ public class S3Service {
         }
     }
 
+    public String generateThumbnailUrl(String vodUrl) {
+        return this.generatePreSignedUrl(getThumbnailUrl(vodUrl));
+    }
+
+    private String getThumbnailUrl(String vodUrl) {
+        return vodUrl + "/" + THUMBNAIL_NAME;
+    }
+
+    private String generatePreSignedUrl(String resourcePath) {
+        try (
+                S3Presigner s3Presigner = createS3Presigner();
+        ) {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(resourcePath)
+                    .build();
+
+            GetObjectPresignRequest getObjectPresignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofMinutes(GET_REQUEST_DURATION_OF_MINUTES))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(getObjectPresignRequest);
+
+            return presignedGetObjectRequest.url().toString();
+        }
+    }
+
     public String generateSignedUrl(String resourcePath) {
         try {
             CustomSignerRequest signerRequest = createCustomSignerRequest(resourcePath);
@@ -152,6 +184,13 @@ public class S3Service {
 
     private S3Client createS3Client() {
         return S3Client.builder()
+                .credentialsProvider(getCredentialsProvider())
+                .region(region)
+                .build();
+    }
+
+    private S3Presigner createS3Presigner() {
+        return S3Presigner.builder()
                 .credentialsProvider(getCredentialsProvider())
                 .region(region)
                 .build();

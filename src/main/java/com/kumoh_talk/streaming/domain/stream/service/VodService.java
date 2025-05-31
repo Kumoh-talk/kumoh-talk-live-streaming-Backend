@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.THUMBNAIL_NAME;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,8 +25,9 @@ public class VodService {
         List<VodListResponse.VodInfo> vodList = vodRepository.findAll().stream()
                 .map(vod -> VodListResponse.VodInfo.builder()
                         .vodId(vod.getId())
-                        .thumbnailUrl(getThumbnailUrl(vod.getSlideUrl()))
+                        .thumbnailUrl(s3Service.generateThumbnailUrl(vod.getSlideUrl()))
                         .title(vod.getTitle())
+                        .length(vod.getLength())
                         .views(vod.getViews())
                         .build()
                 ).toList();
@@ -36,10 +35,6 @@ public class VodService {
         return VodListResponse.builder()
                 .vodList(vodList)
                 .build();
-    }
-
-    private String getThumbnailUrl(String vodUrl) {
-        return vodUrl + "/" + THUMBNAIL_NAME;
     }
 
     public VodResponse getVod(Long vodId) {
