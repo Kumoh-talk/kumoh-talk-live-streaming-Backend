@@ -28,6 +28,7 @@ import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
 public class StreamingService {
 
     private static final String ALLOWED_STREAM_KEY = "hello";
+    private static final HlsWatcher.ThumbnailEventHandler NOOP_THUMBNAIL_HANDLER = path -> {};
 
     private final S3Service s3Service;
 
@@ -45,13 +46,14 @@ public class StreamingService {
         }
 
         String streamKey = parts[0];
+        String type = parts[1];
 
         checkStreamKey(streamKey);
 
-        convertRtmpToHlsWithAudio(name, parts[1]);
+        convertRtmpToHlsWithAudio(name, type);
 
         Path hlsDir = Path.of(HLS_OUTPUT_DIR, name);
-        startWatcher(hlsDir);
+        startWatcher(hlsDir, type);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
@@ -118,13 +120,17 @@ public class StreamingService {
         }
     }
 
-    private void startWatcher(Path dirPath) {
-        HlsWatcher.FileEventHandler fileHandler = s3Service::uploadHlsFile;
-        HlsWatcher.ThumbnailEventHandler thumbnailHandler = s3Service::uploadHlsFile;
+    private void startWatcher(Path dirPath, String type) {
+        HlsWatcher.ThumbnailEventHandler thumbnailHandler;
+        if (type.equals(DESKTOP_TYPE)) {
+            thumbnailHandler = this::extractThumbnail;
+        } else {
+            thumbnailHandler = NOOP_THUMBNAIL_HANDLER;
+        }
 
         HlsWatcher watcher = HlsWatcher.builder()
                 .directoryPath(dirPath)
-                .fileEventHandler(fileHandler)
+                .fileEventHandler(s3Service::uploadHlsFile)
                 .thumbnailEventHandler(thumbnailHandler)
                 .build();
 
@@ -133,6 +139,32 @@ public class StreamingService {
         watcherThread.start();
 
         watcherMap.put(dirPath, watcher);
+    }
+
+    private void extractThumbnail(Path tsFilePath) {
+        String inputPath = tsFilePath.toAbsolutePath().toString();
+        Path outputPath = tsFilePath.getParent().resolve(THUMBNAIL_NAME);
+
+        String[] thumbnailCmd = {
+                "ffmpeg", "-y",
+                "-i", inputPath,
+                "-ss", "00:00:01",
+                "-frames:v", "1",
+                "-vf", "scale=" + THUMBNAIL_RESOLUTION,
+                "-pix_fmt", "yuv420p",
+                outputPath.toString()
+        };
+
+        try {
+            Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
+
+            if (process.waitFor() == 0) {
+                s3Service.uploadHlsFile(outputPath);
+                log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("썸네일 생성 중 오류: {}", e.getMessage());
+        }
     }
 
     public void stopStreaming(String name) {

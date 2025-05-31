@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.global.constant.StreamingConstants.HLS_TIME;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 
 @Slf4j
@@ -77,7 +77,7 @@ public class HlsWatcher implements Runnable {
                 if (iterator.hasNext()) {
                     Path tsFilePath = iterator.next();
                     log.info("{}: HLS 세그먼트 감지됨", tsFilePath);
-                    extractThumbnail(tsFilePath);
+                    thumbnailEventHandler.handleThumbnail(tsFilePath);
                     return;
                 }
             } catch (IOException e) {
@@ -88,32 +88,6 @@ public class HlsWatcher implements Runnable {
 
         log.error("{}: HLS time out", pathToWatch);
         throw ServiceException.from(ExceptionCode.HLS_STREAM_TIMEOUT);
-    }
-
-    private void extractThumbnail(Path tsFilePath) {
-        String inputPath = tsFilePath.toAbsolutePath().toString();
-        Path outputPath = tsFilePath.getParent().resolve(THUMBNAIL_NAME);
-
-        String[] thumbnailCmd = {
-                "ffmpeg", "-y", // -y: 파일 덮어쓰기 허용
-                "-i", inputPath,
-                "-ss", "00:00:01",
-                "-frames:v", "1",
-                "-vf", "scale=" + THUMBNAIL_RESOLUTION,
-                "-pix_fmt", "yuv420p",
-                outputPath.toString()
-        };
-
-        try {
-            Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
-
-            if (process.waitFor() == 0) {
-                thumbnailEventHandler.handleThumbnail(outputPath);
-                log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
-            }
-        } catch (IOException | InterruptedException e) {
-            log.error("썸네일 생성 중 오류: {}", e.getMessage());
-        }
     }
 
     private void threadSleep(int millis) {
