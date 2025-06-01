@@ -148,7 +148,7 @@ public class StreamingService {
         String[] thumbnailCmd = {
                 "ffmpeg", "-y",
                 "-i", inputPath,
-                "-ss", "00:00:01",
+                "-sseof", "-0.1",
                 "-frames:v", "1",
                 "-vf", "scale=" + THUMBNAIL_RESOLUTION,
                 "-pix_fmt", "yuv420p",
