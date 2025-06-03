@@ -37,7 +37,7 @@ public class VodService {
                 .build();
     }
 
-    public VodResponse getVod(Long vodId) {
+    public VodResponse getVod(Long vodId, Long userId) {
         Vod vod = vodRepository.findById(vodId)
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.VOD_NOT_FOUND));
 
@@ -45,6 +45,7 @@ public class VodService {
         String camUrl = s3Service.generateSignedUrl(vod.getCamUrl());
 
         return VodResponse.builder()
+                // TODO. vodId, 제목 추가
                 .slideUrl(slideUrl)
                 .slideTsQuery(slideUrl.split("\\?")[1])
                 .camUrl(camUrl)

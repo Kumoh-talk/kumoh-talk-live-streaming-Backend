@@ -6,6 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +25,22 @@ public class GlobalExceptionHandler {
         ExceptionCode exceptionCode = e.getExceptionCode();
         return ResponseEntity.status(exceptionCode.getStatus())
                 .body(ResponseUtil.createFailureResponse(exceptionCode));
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ResponseBody<Void>> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAnonymous = authentication == null || authentication instanceof AnonymousAuthenticationToken;
+
+        if (isAnonymous) {
+            return ResponseEntity
+                    .status(ExceptionCode.UN_AUTHENTICATION.getStatus())
+                    .body(ResponseUtil.createFailureResponse(ExceptionCode.UN_AUTHENTICATION));
+        }
+
+        return ResponseEntity
+                .status(ExceptionCode.FORBIDDEN.getStatus())
+                .body(ResponseUtil.createFailureResponse(ExceptionCode.FORBIDDEN));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -35,3 +35,6 @@ aws:
     credentials:
       publicKey: ${CLOUDFRONT_PUBLIC_KEY_ID}
       privateKeyPath: ${CLOUDFRONT_PRIVATE_KEY_FULL_PATH}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}

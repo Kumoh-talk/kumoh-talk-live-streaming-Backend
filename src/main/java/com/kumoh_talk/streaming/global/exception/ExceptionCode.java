@@ -14,6 +14,10 @@ public enum ExceptionCode {
     INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "C004", "잘못된 JSON 데이터 형식"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "C005","허용하지 않는 method"),
 
+    // auth
+    UN_AUTHENTICATION(HttpStatus.UNAUTHORIZED, "A001", "인증 정보가 존재하지 않음"),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "A002", "권한 없음"),
+
     // video (streaming, vod)
     INVALID_STREAM_FORMAT(HttpStatus.FORBIDDEN, "V001", "잘못된 RTMP 주소 요청"),
     INVALID_STREAM_KEY(HttpStatus.FORBIDDEN, "V002", "허용하지 않는 스트림 키"),
