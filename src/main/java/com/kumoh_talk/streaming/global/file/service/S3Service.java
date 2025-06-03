@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
 
 @Slf4j
 @Service

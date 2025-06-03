@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import static com.kumoh_talk.streaming.global.constant.WebSocketConstants.CHAT_DESTINATION;
+import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.CHAT_DESTINATION;
 
 @Slf4j
 @Service

@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.HLS_TIME;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.HLS_TIME;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 
 @Slf4j

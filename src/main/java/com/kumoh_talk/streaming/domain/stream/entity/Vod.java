@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
 
 @Entity
 @Getter

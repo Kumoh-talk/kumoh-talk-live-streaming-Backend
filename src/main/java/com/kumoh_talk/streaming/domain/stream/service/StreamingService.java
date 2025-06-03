@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.kumoh_talk.streaming.global.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
 
 @Slf4j
 @Service

@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.global.constant;
+package com.kumoh_talk.streaming.global.socket.constant;
 
 public final class WebSocketConstants {
 
