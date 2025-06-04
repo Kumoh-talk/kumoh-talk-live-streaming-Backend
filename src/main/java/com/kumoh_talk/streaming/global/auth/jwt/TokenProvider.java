@@ -18,12 +18,16 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class TokenProvider {
 
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final AuthenticatedUserService authenticatedUserService;
 
     @Value("${jwt.secret-key}")
     private String secretKey;
 
-    public UserDetails validateAndParseToken(String token) {
+    public UserDetails validateAndParseToken(String bearerToken) {
+        String token = this.resolveToken(bearerToken);
+
         if (token == null) {
             return null;
         }
@@ -44,6 +48,13 @@ public class TokenProvider {
             log.error("토큰이 유효하지 않습니다.");
         }
 
+        return null;
+    }
+
+    private String resolveToken(String bearerToken) {
+        if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length());
+        }
         return null;
     }
 }

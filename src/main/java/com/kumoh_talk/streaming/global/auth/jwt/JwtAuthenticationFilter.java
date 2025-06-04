@@ -20,8 +20,6 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
-
     private final TokenProvider tokenProvider;
 
     private final RequestMatcher requestMatcher = new RequestHeaderRequestMatcher(HttpHeaders.AUTHORIZATION);
@@ -33,8 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String token = resolveToken(request);
-        UserDetails userDetails = tokenProvider.validateAndParseToken(token);
+        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
+        UserDetails userDetails = tokenProvider.validateAndParseToken(bearerToken);
 
         if (userDetails != null) {
             try {
@@ -48,13 +46,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_PREFIX.length());
-        }
-        return null;
     }
 }
