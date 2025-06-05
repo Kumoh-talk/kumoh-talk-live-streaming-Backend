@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.domain.chat.entity;
+package com.kumoh_talk.streaming.domain.chat.persistent.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;

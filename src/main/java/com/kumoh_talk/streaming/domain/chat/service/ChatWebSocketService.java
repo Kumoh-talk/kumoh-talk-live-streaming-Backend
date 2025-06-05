@@ -2,8 +2,8 @@ package com.kumoh_talk.streaming.domain.chat.service;
 
 import com.kumoh_talk.streaming.domain.chat.dto.request.ChatCreateRequest;
 import com.kumoh_talk.streaming.domain.chat.dto.response.ChatResponse;
-import com.kumoh_talk.streaming.domain.chat.entity.Chat;
-import com.kumoh_talk.streaming.domain.chat.repository.ChatRepository;
+import com.kumoh_talk.streaming.domain.chat.persistent.entity.Chat;
+import com.kumoh_talk.streaming.domain.chat.persistent.repository.ChatRepository;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

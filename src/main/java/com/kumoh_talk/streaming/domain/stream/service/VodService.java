@@ -2,8 +2,8 @@ package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.dto.response.VodListResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.VodResponse;
-import com.kumoh_talk.streaming.domain.stream.entity.Vod;
-import com.kumoh_talk.streaming.domain.stream.repository.VodRepository;
+import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
+import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
