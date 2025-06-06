@@ -36,7 +36,7 @@ services:
     container_name: kumoh-talk-streaming-nginx-rtmp
     ports:
       - "1935:1935"
-      - "9191:8081"
+      - "9091:8081"
     volumes:
       - ${HLS_PATH}/hls:/tmp/hls
       - ${HLS_PATH}/hls_audio:/tmp/hls_audio
