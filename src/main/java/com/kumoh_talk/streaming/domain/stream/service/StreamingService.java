@@ -3,6 +3,8 @@ package com.kumoh_talk.streaming.domain.stream.service;
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
+import com.kumoh_talk.streaming.domain.stream.redis.entity.Streaming;
+import com.kumoh_talk.streaming.domain.stream.redis.repository.StreamingRedisRepository;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
@@ -10,6 +12,7 @@ import com.kumoh_talk.streaming.global.file.service.S3Service;
 import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -33,17 +36,20 @@ public class StreamingService {
     private static final String ALLOWED_STREAM_KEY = "hello";
     private static final HlsWatcher.ThumbnailEventHandler NOOP_THUMBNAIL_HANDLER = path -> {};
 
+    private static final String STREAMING_ID_KEY = "streaming:id:seq";
     private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
     private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(1);
 
     private final S3Service s3Service;
     private final VodRepository vodRepository;
+    private final StreamingRedisRepository streamingRedisRepository;
 
     private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
-    public void startStreaming(String name) {
+    public void startStreaming(String name, String title) {
         log.info("stream name: {}", name);
 
         String[] parts = name.split(STREAMING_TYPE_DELIMITER);
@@ -57,10 +63,11 @@ public class StreamingService {
 
         checkStreamKey(streamKey);
 
-        convertRtmpToHlsWithAudio(name, type);
+        String streamWatchKey = getStreamWatchKey(streamKey, type, title);
 
-        Path hlsDir = Path.of(HLS_OUTPUT_DIR, name);
-        startWatcher(hlsDir, type);
+        String hlsDir = convertRtmpToHlsWithAudio(streamWatchKey, type);
+
+        startWatcher(Path.of(hlsDir), type);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
@@ -89,10 +96,37 @@ public class StreamingService {
         }
     }
 
-    private void convertRtmpToHlsWithAudio(String name, String type) {
-        String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + name;
+    private String getStreamWatchKey(String streamKey, String type, String title) {
+        Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
+        if (savedStreaming.isPresent()) {
+            return getStreamWatchKey(savedStreaming.get(), type);
+        }
 
-        String hlsDir = HLS_OUTPUT_DIR + "/" + name;
+        Long id = stringRedisTemplate.opsForValue().increment(STREAMING_ID_KEY);
+        Streaming streaming = Streaming.builder()
+                .id(id)
+                .startTime(LocalDateTime.now())
+                .title(title)
+                .streamUploadKey(streamKey)
+                .build();
+        Streaming newStreaming = streamingRedisRepository.save(streaming);
+        log.info("새로운 스트리밍 생성 - uploadKey:{}, camKey: {}, slideKey: {}", streamKey, newStreaming.getCamWatchKey(), newStreaming.getSlideWatchKey());
+
+        return getStreamWatchKey(newStreaming, type);
+    }
+
+    private String getStreamWatchKey(Streaming streaming, String type) {
+        if (type.equals(DESKTOP_TYPE)) {
+            return streaming.getSlideWatchKey();
+        }
+
+        return streaming.getCamWatchKey();
+    }
+
+    private String convertRtmpToHlsWithAudio(String streamWatchKey, String type) {
+        String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + streamWatchKey;
+
+        String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
 
         String[] videoCmd = {
                 "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
@@ -108,10 +142,10 @@ public class StreamingService {
         startFfmpegProcess(videoCmd, hlsDir);
 
         if (type.equals(WEBCAM_TYPE)) {
-            return;
+            return hlsDir;
         }
 
-        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, name);
+        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, streamWatchKey);
 
         String[] audioCmd = {
                 "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
@@ -124,6 +158,8 @@ public class StreamingService {
         };
 
         startFfmpegProcess(audioCmd, hlsAudioDir);
+
+        return hlsDir;
     }
 
     private void startFfmpegProcess(String[] command, String hlsDir) {
@@ -185,20 +221,33 @@ public class StreamingService {
     }
 
     public void stopStreaming(String name) {
-        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, name);
-        Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, name);
+        String[] parts = name.split(STREAMING_TYPE_DELIMITER);
+        String streamKey = parts[0];
+        String type = parts[1];
+
+        Streaming streaming = streamingRedisRepository.findByStreamUploadKey(streamKey)
+                .orElseThrow(() -> ServiceException.from(ExceptionCode.INVALID_STREAM_KEY));
+
+        boolean isSlideType = type.equals(DESKTOP_TYPE);
+        String streamWatchKey;
+        if (isSlideType) {
+            streamWatchKey = streaming.getSlideWatchKey();
+        } else {
+            streamWatchKey = streaming.getStreamUploadKey();
+        }
+
+        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
+        Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
 
         watcherMap.get(hlsDir).stopWatching();
-        List<String> tsList = s3Service.getFileList(name).stream()
+        List<String> tsList = s3Service.getFileList(streamWatchKey).stream()
                 .filter(path -> path.endsWith(".ts"))
                 .sorted(Comparator.comparingInt(this::extractIndex))
                 .toList();
-        createAndUploadM3U8(name, tsList);
+        createAndUploadM3U8(streamWatchKey, tsList);
 
-        String streamKey = name.split(STREAMING_TYPE_DELIMITER)[0];
-        String type = name.split(STREAMING_TYPE_DELIMITER)[1];
-        if (type.equals(DESKTOP_TYPE)) {
-            saveVodEntity(streamKey, tsList.size() * HLS_TIME);
+        if (isSlideType) {
+            saveVodEntity(streaming.getCamWatchKey(), streaming.getSlideWatchKey(), tsList.size() * HLS_TIME);
         }
 
         try {
@@ -216,12 +265,13 @@ public class StreamingService {
         return Integer.parseInt(numberPart);
     }
 
-    private void saveVodEntity(String streamKey, int seconds) {
+    private void saveVodEntity(String camKey, String slideKey, int seconds) {
         Vod vod = Vod.builder()
                 // TODO. streamKey를 통해 조회하여 title, summary 하드코딩 제거
                 .title("JPA란 무엇인가")
                 .summary("(내용 요약 텍스트 전문이 들어갈 자리)")
-                .streamKey(streamKey)
+                .camKey(camKey)
+                .slideKey(slideKey)
                 .seconds(seconds)
                 .build();
 

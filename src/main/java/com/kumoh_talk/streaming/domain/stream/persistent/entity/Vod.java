@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
 
-import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.VOD_PATH;
 
 @Entity
 @Getter
@@ -39,12 +39,11 @@ public class Vod {
     private Long views;
 
     @Builder
-    public Vod(String title, String streamKey, int seconds, String summary) {
+    public Vod(String title, String camKey, String slideKey, int seconds, String summary) {
         this.title = title;
 
-        String urlPrefix = VOD_PATH + "/" + streamKey + STREAMING_TYPE_DELIMITER;
-        this.camUrl = urlPrefix + WEBCAM_TYPE;
-        this.slideUrl = urlPrefix + DESKTOP_TYPE;
+        this.camUrl = VOD_PATH + "/" + camKey;
+        this.slideUrl = VOD_PATH + "/" + slideKey;
 
         this.length = LocalTime.ofSecondOfDay(seconds);
         this.summary = summary;
