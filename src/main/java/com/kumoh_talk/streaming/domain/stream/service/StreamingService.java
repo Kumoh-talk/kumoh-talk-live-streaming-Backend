@@ -1,13 +1,16 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
+import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
+import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
 import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -15,9 +18,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
@@ -30,9 +33,13 @@ public class StreamingService {
     private static final String ALLOWED_STREAM_KEY = "hello";
     private static final HlsWatcher.ThumbnailEventHandler NOOP_THUMBNAIL_HANDLER = path -> {};
 
-    private final S3Service s3Service;
+    private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
+    private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(1);
 
+    private final S3Service s3Service;
     private final VodRepository vodRepository;
+
+    private final StringRedisTemplate stringRedisTemplate;
 
     private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
@@ -66,7 +73,17 @@ public class StreamingService {
 
 
     private void checkStreamKey(String streamKey) {
-        // TODO. 저장된 리스트에 존재하는지 확인하는 코드로 변경
+        // streamKey가 유효한지 검증
+//        try {
+//            boolean isValidKey = stringRedisTemplate.hasKey(STREAM_CANDIDATE_KEY + ":" + streamKey);
+//            if (!isValidKey) {
+//                throw ServiceException.from(ExceptionCode.INVALID_STREAM_KEY);
+//            }
+//        } catch (NullPointerException e) {
+//            throw ServiceException.from(ExceptionCode.UNEXPECTED_SERVER_ERROR);
+//        }
+
+        // TODO. 추후 ADMIN 계정 받은 후 삭제 후 위의 주석 처리 해제
         if (!streamKey.equals(ALLOWED_STREAM_KEY)) {
             throw ServiceException.from(ExceptionCode.INVALID_STREAM_KEY);
         }
@@ -235,5 +252,18 @@ public class StreamingService {
                     .map(Path::toFile)
                     .forEach(File::delete);
         }
+    }
+
+    public CreateStreamKeyResponse createStreamKey(AuthenticatedUser user) {
+        CreateStreamKeyResponse response = CreateStreamKeyResponse.builder()
+                .streamKey(UUID.randomUUID().toString())
+                .expireAt(LocalDateTime.now().plus(STREAM_CANDIDATE_KEY_TTL))
+                .build();
+
+        stringRedisTemplate.opsForValue().set(STREAM_CANDIDATE_KEY + ":" + response.streamKey(),
+                user.userId().toString(),
+                STREAM_CANDIDATE_KEY_TTL);
+
+        return response;
     }
 }
