@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}
+    url: jdbc:mysql://kumoh-talk-streaming-mysql:3306/${MYSQL_DATABASE}
     username: ${MYSQL_USER}
     password: ${MYSQL_PASSWORD}
 
@@ -19,7 +19,7 @@ spring:
     show-sql: true
 
   redis:
-    host: redis
+    host: kumoh-talk-streaming-redis
     port: 6379
     password: ${REDIS_PASSWORD}
 
