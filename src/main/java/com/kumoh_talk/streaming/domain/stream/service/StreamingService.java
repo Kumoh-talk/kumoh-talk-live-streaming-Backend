@@ -65,7 +65,7 @@ public class StreamingService {
 
         String streamWatchKey = getStreamWatchKey(streamKey, type, title);
 
-        String hlsDir = convertRtmpToHlsWithAudio(streamWatchKey, type);
+        String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
         startWatcher(Path.of(hlsDir), type);
     }
@@ -123,8 +123,8 @@ public class StreamingService {
         return streaming.getCamWatchKey();
     }
 
-    private String convertRtmpToHlsWithAudio(String streamWatchKey, String type) {
-        String rtmpUrl = "rtmp://nginx-rtmp:1935/live/" + streamWatchKey;
+    private String convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
+        String rtmpUrl = "rtmp://kumoh-talk-streaming-nginx-rtmp:1935/live/" + streamUploadKey;
 
         String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
 
