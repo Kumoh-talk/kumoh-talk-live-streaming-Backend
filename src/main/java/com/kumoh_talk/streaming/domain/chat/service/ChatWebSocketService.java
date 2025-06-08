@@ -26,7 +26,7 @@ public class ChatWebSocketService {
         Chat chat = Chat.builder()
                 .content(chatCreateRequest.content())
                 .userId(authenticatedUser.userId())
-                .nickname("하하호호") // TODO. 닉네임 하드코딩 제거
+                .nickname(authenticatedUser.nickname())
                 .build();
 
         Chat savedChat = chatRepository.save(chat);
