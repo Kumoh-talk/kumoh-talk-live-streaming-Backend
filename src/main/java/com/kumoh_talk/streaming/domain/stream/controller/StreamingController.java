@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.domain.stream.controller;
 
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
 import com.kumoh_talk.streaming.domain.stream.service.StreamingService;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.response.ResponseBody;
@@ -48,6 +49,12 @@ public class StreamingController {
     @GetMapping("/streamKey")
     public ResponseEntity<ResponseBody<StreamKeyListResponse>> getStreamKey() {
         StreamKeyListResponse response = streamingService.getStreamKey();
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<ResponseBody<StreamingListResponse>> getStreamingList() {
+        StreamingListResponse response = streamingService.getStreamingList();
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 }

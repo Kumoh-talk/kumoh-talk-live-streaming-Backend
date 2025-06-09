@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
 import com.kumoh_talk.streaming.domain.stream.redis.entity.Streaming;
@@ -25,6 +26,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
 import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.SUBSCRIBER_KEY_PREFIX;
@@ -326,7 +329,25 @@ public class StreamingService {
                 .build();
     }
 
-    private Long getSubscriberCount(String destination) {
-        return stringRedisTemplate.opsForSet().size(SUBSCRIBER_KEY_PREFIX + destination);
+    public StreamingListResponse getStreamingList() {
+        Stream<Streaming> streamingStream =
+                StreamSupport.stream(streamingRedisRepository.findAll().spliterator(), false);
+
+        List<StreamingListResponse.StreamingInfo> streamingList = streamingStream
+                .map(streaming -> StreamingListResponse.StreamingInfo.builder()
+                        .streamId(streaming.getId())
+                        .title(streaming.getTitle())
+                        .thumbnailUrl(s3Service.generateThumbnailUrl(VOD_PATH + "/" + streaming.getSlideWatchKey()))
+                        .viewers(getSubscriberCount(streaming.getId().toString()))
+                        .build()
+                ).toList();
+
+        return StreamingListResponse.builder()
+                .streamingList(streamingList)
+                .build();
+    }
+
+    private Long getSubscriberCount(String streamId) {
+        return stringRedisTemplate.opsForSet().size(SUBSCRIBER_KEY_PREFIX + streamId);
     }
 }
