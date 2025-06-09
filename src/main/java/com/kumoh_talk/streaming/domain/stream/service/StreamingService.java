@@ -63,7 +63,7 @@ public class StreamingService {
 
         checkStreamKey(streamKey);
 
-        String streamWatchKey = getStreamWatchKey(streamKey, type, title);
+        String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type, title);
 
         String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
@@ -96,7 +96,7 @@ public class StreamingService {
         }
     }
 
-    private String getStreamWatchKey(String streamKey, String type, String title) {
+    private String getOrCreateStreamWatchKey(String streamKey, String type, String title) {
         Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
         if (savedStreaming.isPresent()) {
             return getStreamWatchKey(savedStreaming.get(), type);
