@@ -11,5 +11,8 @@ public final class WebSocketConstants {
     public static final String ERROR_DESTINATION = "/queue/errors";
     public static final String ERROR_DESTINATION_PREFIX = "/user/";
 
+    public static final String SUBSCRIBER_KEY_PREFIX = "sub:"; // sub:<streamId> → Set<sessionId>
+    public static final String SESSION_KEY_PREFIX = "session:"; // session:<sessionId> → Set<streamId>
+
     private WebSocketConstants() {}
 }

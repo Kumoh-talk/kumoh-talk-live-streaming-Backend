@@ -27,7 +27,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
-import static com.kumoh_talk.streaming.global.socket.event.StompEventListener.SUBSCRIBER_KEY_PREFIX;
+import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.SUBSCRIBER_KEY_PREFIX;
 
 @Slf4j
 @Service
@@ -324,5 +324,9 @@ public class StreamingService {
         return StreamKeyListResponse.builder()
                 .streamKeyList(keySet.stream().toList())
                 .build();
+    }
+
+    private Long getSubscriberCount(String destination) {
+        return stringRedisTemplate.opsForSet().size(SUBSCRIBER_KEY_PREFIX + destination);
     }
 }

@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.QNA_DESTINATION;
-import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.QNA_LIST_DESTINATION;
+import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.*;
 
 @Slf4j
 @Service
@@ -52,6 +51,10 @@ public class QnaWebSocketService {
                 .build();
 
         template.convertAndSend(QNA_LIST_DESTINATION + sessionId, response);
+
+        // 시청자 목록 추가
+        stringRedisTemplate.opsForSet().add(SUBSCRIBER_KEY_PREFIX + streamId, sessionId);
+        stringRedisTemplate.opsForSet().add(SESSION_KEY_PREFIX + sessionId, streamId.toString());
     }
 
     private QnaListResponse.QnaInfo mapToQnaInfo(Qna qna) {
