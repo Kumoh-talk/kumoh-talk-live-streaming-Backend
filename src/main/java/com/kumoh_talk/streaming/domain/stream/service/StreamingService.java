@@ -127,6 +127,7 @@ public class StreamingService {
         String rtmpUrl = "rtmp://kumoh-talk-streaming-nginx-rtmp:1935/live/" + streamUploadKey;
 
         String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
+        // TODO. ffmpeg 동시 실행되지 않도록 시간차 두기, ffmpeg 실행 리팩토링
 
         String[] videoCmd = {
                 "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
@@ -247,7 +248,7 @@ public class StreamingService {
         createAndUploadM3U8(streamWatchKey, tsList);
 
         if (isSlideType) {
-            saveVodEntity(streaming.getCamWatchKey(), streaming.getSlideWatchKey(), tsList.size() * HLS_TIME);
+            saveVodEntity(streaming, tsList.size() * HLS_TIME);
         }
 
         try {
@@ -265,13 +266,12 @@ public class StreamingService {
         return Integer.parseInt(numberPart);
     }
 
-    private void saveVodEntity(String camKey, String slideKey, int seconds) {
+    private void saveVodEntity(Streaming streaming, int seconds) {
         Vod vod = Vod.builder()
-                // TODO. streamKey를 통해 조회하여 title, summary 하드코딩 제거
-                .title("JPA란 무엇인가")
-                .summary("(내용 요약 텍스트 전문이 들어갈 자리)")
-                .camKey(camKey)
-                .slideKey(slideKey)
+                .title(streaming.getTitle())
+                .summary(streaming.getSummary())
+                .camKey(streaming.getCamWatchKey())
+                .slideKey(streaming.getSlideWatchKey())
                 .seconds(seconds)
                 .build();
 

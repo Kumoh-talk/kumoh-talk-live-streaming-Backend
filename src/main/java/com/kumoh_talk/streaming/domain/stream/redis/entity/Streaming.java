@@ -4,6 +4,7 @@ import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
@@ -29,6 +30,9 @@ public class Streaming {
 
     private String slideWatchKey;
 
+    @Setter
+    private String summary;
+
     @Builder
     public Streaming(Long id, LocalDateTime startTime, String title, String streamUploadKey) {
         this.id = id;
@@ -37,5 +41,6 @@ public class Streaming {
         this.streamUploadKey = streamUploadKey;
         this.camWatchKey = UUID.randomUUID().toString();
         this.slideWatchKey = UUID.randomUUID().toString();
+        this.summary = "";
     }
 }
