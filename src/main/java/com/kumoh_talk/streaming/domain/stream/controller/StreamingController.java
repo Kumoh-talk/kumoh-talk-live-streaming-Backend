@@ -35,8 +35,9 @@ public class StreamingController {
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 
-    @PreAuthorize("hasAnyRole(ROLE_ADMIN)")
-    @PostMapping("/create-streamKey")
+    // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
+    @PreAuthorize("hasAnyRole(ROLE_USER, ROLE_ADMIN)")
+    @PostMapping("/streamKey")
     public ResponseEntity<ResponseBody<CreateStreamKeyResponse>> createStreamKey(@AuthenticationPrincipal AuthenticatedUser user) {
         CreateStreamKeyResponse response = streamingService.createStreamKey(user);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));

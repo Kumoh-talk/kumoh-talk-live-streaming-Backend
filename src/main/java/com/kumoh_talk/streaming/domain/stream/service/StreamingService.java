@@ -13,7 +13,6 @@ import com.kumoh_talk.streaming.global.file.service.S3Service;
 import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +27,13 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.global.socket.event.StompEventListener.SUBSCRIBER_KEY_PREFIX;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StreamingService {
 
-    private static final String ALLOWED_STREAM_KEY = "hello";
     private static final HlsWatcher.ThumbnailEventHandler NOOP_THUMBNAIL_HANDLER = path -> {};
 
     private static final String STREAMING_ID_KEY = "streaming:id:seq";
@@ -46,7 +45,6 @@ public class StreamingService {
     private final StreamingRedisRepository streamingRedisRepository;
 
     private final StringRedisTemplate stringRedisTemplate;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
@@ -81,18 +79,13 @@ public class StreamingService {
 
 
     private void checkStreamKey(String streamKey) {
-        // streamKey가 유효한지 검증
-//        try {
-//            boolean isValidKey = stringRedisTemplate.hasKey(STREAM_CANDIDATE_KEY + ":" + streamKey);
-//            if (!isValidKey) {
-//                throw ServiceException.from(ExceptionCode.INVALID_STREAM_KEY);
-//            }
-//        } catch (NullPointerException e) {
-//            throw ServiceException.from(ExceptionCode.UNEXPECTED_SERVER_ERROR);
-//        }
+        Boolean isValidKey = stringRedisTemplate.hasKey(STREAM_CANDIDATE_KEY + ":" + streamKey);
 
-        // TODO. 추후 ADMIN 계정 받은 후 삭제 후 위의 주석 처리 해제
-        if (!streamKey.equals(ALLOWED_STREAM_KEY)) {
+        if (isValidKey == null) {
+            throw ServiceException.from(ExceptionCode.UNEXPECTED_SERVER_ERROR);
+        }
+
+        if (!isValidKey) {
             throw ServiceException.from(ExceptionCode.INVALID_STREAM_KEY);
         }
     }
