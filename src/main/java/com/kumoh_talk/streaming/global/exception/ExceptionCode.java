@@ -27,6 +27,9 @@ public enum ExceptionCode {
     VOD_NOT_FOUND(HttpStatus.NOT_FOUND, "V006", "존재하지 않는 VOD ID"),
     SIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "V007", "cloudfront signed url 생성 실패"),
 
+    // qna
+    QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "해당 Q&A를 찾을 수 없음"),
+    ALREADY_LIKED(HttpStatus.CONFLICT, "Q002", "이미 좋아요를 누른 Q&A"),
     ;
 
     private final HttpStatus status;

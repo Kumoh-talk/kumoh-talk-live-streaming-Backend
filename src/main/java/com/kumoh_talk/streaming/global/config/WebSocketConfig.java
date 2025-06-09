@@ -17,7 +17,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // prefix /app 으로 들어오는 메시지는 @MessageMapping 으로 라우팅
         registry.setApplicationDestinationPrefixes("/app");
         // 간단한 메모리 브로커를 켜고, /chat, /qna로 구독 처리
-        registry.enableSimpleBroker(CHAT_DESTINATION, QNA_DESTINATION, ERROR_DESTINATION_PREFIX);
+        registry.enableSimpleBroker(CHAT_DESTINATION, QNA_DESTINATION, QNA_LIST_DESTINATION, ERROR_DESTINATION_PREFIX);
     }
 
     @Override
