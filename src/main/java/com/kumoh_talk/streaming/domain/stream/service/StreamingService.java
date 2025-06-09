@@ -1,6 +1,7 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
 import com.kumoh_talk.streaming.domain.stream.redis.entity.Streaming;
@@ -315,5 +316,20 @@ public class StreamingService {
                 STREAM_CANDIDATE_KEY_TTL);
 
         return response;
+    }
+
+    public StreamKeyListResponse getStreamKey() {
+        String pattern = STREAM_CANDIDATE_KEY + ":*";
+
+        Set<String> keySet = stringRedisTemplate.keys(pattern);
+        if (keySet == null) {
+            return StreamKeyListResponse.builder()
+                    .streamKeyList(List.of())
+                    .build();
+        }
+
+        return StreamKeyListResponse.builder()
+                .streamKeyList(keySet.stream().toList())
+                .build();
     }
 }
