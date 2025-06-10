@@ -51,7 +51,7 @@ public class StreamingService {
 
     private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
-    public void startStreaming(String name, String title) {
+    public void startStreaming(String name) {
         log.info("stream name: {}", name);
 
         String[] parts = name.split(STREAMING_TYPE_DELIMITER);
@@ -65,7 +65,7 @@ public class StreamingService {
 
         checkStreamKey(streamKey);
 
-        String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type, title);
+        String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type);
 
         String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
@@ -93,7 +93,7 @@ public class StreamingService {
         }
     }
 
-    private String getOrCreateStreamWatchKey(String streamKey, String type, String title) {
+    private String getOrCreateStreamWatchKey(String streamKey, String type) {
         Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
         if (savedStreaming.isPresent()) {
             return getStreamWatchKey(savedStreaming.get(), type);
@@ -103,7 +103,7 @@ public class StreamingService {
         Streaming streaming = Streaming.builder()
                 .id(id)
                 .startTime(LocalDateTime.now())
-                .title(title)
+                .title("")
                 .streamUploadKey(streamKey)
                 .build();
         Streaming newStreaming = streamingRedisRepository.save(streaming);
