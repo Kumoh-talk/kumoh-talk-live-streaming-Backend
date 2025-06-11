@@ -1,5 +1,6 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
+import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -327,6 +329,15 @@ public class StreamingService {
         return StreamKeyListResponse.builder()
                 .streamKeyList(keySet.stream().toList())
                 .build();
+    }
+
+    @Transactional
+    public void changeStreamingTitle(ChangeStreamingTitleRequest request) {
+        Streaming streaming = streamingRedisRepository.findByStreamUploadKey(request.streamKey())
+                .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
+
+        streaming.setTitle(request.title());
+        streamingRedisRepository.save(streaming);
     }
 
     public StreamingListResponse getStreamingList() {

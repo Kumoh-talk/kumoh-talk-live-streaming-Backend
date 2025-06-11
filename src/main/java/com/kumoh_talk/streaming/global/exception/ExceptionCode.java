@@ -26,6 +26,7 @@ public enum ExceptionCode {
     HLS_STREAM_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "V005", "HLS manifest 파일 생성 실패"),
     VOD_NOT_FOUND(HttpStatus.NOT_FOUND, "V006", "존재하지 않는 VOD ID"),
     SIGNED_URL_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "V007", "cloudfront signed url 생성 실패"),
+    STREAMING_NOT_FOUND(HttpStatus.NOT_FOUND, "V008", "해당 스트리밍이 존재하지 않음"),
 
     // qna
     QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "해당 Q&A를 찾을 수 없음"),

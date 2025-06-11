@@ -21,6 +21,7 @@ public class Streaming {
 
     private LocalDateTime startTime;
 
+    @Setter
     private String title;
 
     @Indexed

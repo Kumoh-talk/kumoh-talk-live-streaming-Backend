@@ -1,5 +1,6 @@
 package com.kumoh_talk.streaming.domain.stream.controller;
 
+import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
@@ -7,15 +8,13 @@ import com.kumoh_talk.streaming.domain.stream.service.StreamingService;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.response.ResponseBody;
 import com.kumoh_talk.streaming.global.response.ResponseUtil;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/stream")
@@ -49,6 +48,14 @@ public class StreamingController {
     public ResponseEntity<ResponseBody<StreamKeyListResponse>> getStreamKey() {
         StreamKeyListResponse response = streamingService.getStreamKey();
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
+    @PreAuthorize("hasAnyRole(ROLE_USER, ROLE_ADMIN)")
+    @PostMapping("/title")
+    public ResponseEntity<ResponseBody<Void>> changeStreamingTitle(@Valid @RequestBody ChangeStreamingTitleRequest request) {
+        streamingService.changeStreamingTitle(request);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 
     @GetMapping("/list")
