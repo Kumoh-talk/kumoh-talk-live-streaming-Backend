@@ -35,7 +35,7 @@ public class StreamingController {
     }
 
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
-    @PreAuthorize("hasAnyRole(ROLE_USER, ROLE_ADMIN)")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @PostMapping("/streamKey")
     public ResponseEntity<ResponseBody<CreateStreamKeyResponse>> createStreamKey(@AuthenticationPrincipal AuthenticatedUser user) {
         CreateStreamKeyResponse response = streamingService.createStreamKey(user);
@@ -43,7 +43,7 @@ public class StreamingController {
     }
 
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
-    @PreAuthorize("hasAnyRole(ROLE_USER, ROLE_ADMIN)")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @GetMapping("/streamKey")
     public ResponseEntity<ResponseBody<StreamKeyListResponse>> getStreamKey() {
         StreamKeyListResponse response = streamingService.getStreamKey();
@@ -51,7 +51,7 @@ public class StreamingController {
     }
 
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
-    @PreAuthorize("hasAnyRole(ROLE_USER, ROLE_ADMIN)")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @PostMapping("/title")
     public ResponseEntity<ResponseBody<Void>> changeStreamingTitle(@Valid @RequestBody ChangeStreamingTitleRequest request) {
         streamingService.changeStreamingTitle(request);

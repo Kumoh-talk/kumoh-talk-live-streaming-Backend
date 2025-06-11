@@ -246,6 +246,8 @@ public class StreamingService {
                 .toList();
         createAndUploadM3U8(streamWatchKey, tsList);
 
+        // TODO. 레디스에 남은 streaming, qna, vote 정리
+
         if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
         }
