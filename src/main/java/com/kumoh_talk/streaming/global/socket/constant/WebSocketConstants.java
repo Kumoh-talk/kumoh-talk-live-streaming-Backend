@@ -8,6 +8,7 @@ public final class WebSocketConstants {
     public static final String QNA_DESTINATION = "/streaming/qna/";
     public static final String QNA_LIST_DESTINATION = "/streaming/qna-list/";
     public static final String VOTE_DESTINATION = "/streaming/vote/";
+    public static final String VOTE_LIST_DESTINATION = "/streaming/vote-list/";
 
     public static final String ERROR_DESTINATION = "/queue/errors";
     public static final String ERROR_DESTINATION_PREFIX = "/user/";

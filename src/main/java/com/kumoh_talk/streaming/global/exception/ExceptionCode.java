@@ -31,6 +31,11 @@ public enum ExceptionCode {
     // qna
     QNA_NOT_FOUND(HttpStatus.NOT_FOUND, "Q001", "해당 Q&A를 찾을 수 없음"),
     ALREADY_LIKED(HttpStatus.CONFLICT, "Q002", "이미 좋아요를 누른 Q&A"),
+
+    // vote
+    VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "해당 투표를 찾을 수 없음"),
+    MULTIPLE_CHOICES_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "S002", "해당 투표는 하나의 선택지만 허용됩니다."),
+
     ;
 
     private final HttpStatus status;

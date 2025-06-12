@@ -20,7 +20,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.enableSimpleBroker(
                 CHAT_DESTINATION,
                 QNA_DESTINATION, QNA_LIST_DESTINATION,
-                VOTE_DESTINATION,
+                VOTE_DESTINATION, VOTE_LIST_DESTINATION,
                 ERROR_DESTINATION_PREFIX
         );
     }
