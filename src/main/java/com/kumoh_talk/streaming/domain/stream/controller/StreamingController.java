@@ -1,10 +1,7 @@
 package com.kumoh_talk.streaming.domain.stream.controller;
 
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
-import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamIdResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.service.StreamingService;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.response.ResponseBody;
@@ -62,6 +59,12 @@ public class StreamingController {
     @GetMapping("/list")
     public ResponseEntity<ResponseBody<StreamingListResponse>> getStreamingList() {
         StreamingListResponse response = streamingService.getStreamingList();
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    @GetMapping("/{streamId}")
+    public ResponseEntity<ResponseBody<StreamingResponse>> getStreamingInfo(@PathVariable(name = "streamId") Long streamId) {
+        StreamingResponse response = streamingService.getStreamingInfo(streamId);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 }

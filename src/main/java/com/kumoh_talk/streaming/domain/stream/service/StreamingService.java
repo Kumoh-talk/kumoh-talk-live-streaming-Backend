@@ -1,10 +1,7 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
-import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamIdResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
-import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
 import com.kumoh_talk.streaming.domain.stream.redis.entity.Streaming;
@@ -44,7 +41,7 @@ public class StreamingService {
 
     private static final String STREAMING_ID_KEY = "streaming:id:seq";
     private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
-    private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(1);
+    private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(72);
 
     private final S3Service s3Service;
     private final VodRepository vodRepository;
@@ -371,5 +368,16 @@ public class StreamingService {
 
     private Long getSubscriberCount(String streamId) {
         return stringRedisTemplate.opsForSet().size(SUBSCRIBER_KEY_PREFIX + streamId);
+    }
+
+    public StreamingResponse getStreamingInfo(Long streamId) {
+        Streaming streaming = streamingRedisRepository.findById(streamId)
+                .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
+
+        return StreamingResponse.builder()
+                .streamId(streamId)
+                .camUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getCamWatchKey() + "/index.m3u8")
+                .slideUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getSlideWatchKey() + "/index.m3u8")
+                .build();
     }
 }
