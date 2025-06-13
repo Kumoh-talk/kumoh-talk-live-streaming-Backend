@@ -1,5 +1,6 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
+import com.kumoh_talk.streaming.domain.stream.constant.StreamingConfig;
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
@@ -10,6 +11,7 @@ import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
 import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
+import com.kumoh_talk.streaming.global.util.AudioApiClient;
 import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -157,6 +159,8 @@ public class StreamingService {
 
         startFfmpegProcess(audioCmd, hlsAudioDir);
 
+        AudioApiClient.start(streamWatchKey, streamUploadKey); // 우선 업로드 키로 전달
+
         return hlsDir;
     }
 
@@ -244,11 +248,14 @@ public class StreamingService {
                 .toList();
         createAndUploadM3U8(streamWatchKey, tsList);
 
-        // TODO. 레디스에 남은 streaming, qna, vote 정리
 
         if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
+            AudioApiClient.end(streamKey);  // 우선 업로드 키로 전달
         }
+
+        streamingRedisRepository.delete(streaming);
+        // TODO. 레디스에 남은 qna, vote 정리
 
         try {
             deleteDirectoryRecursively(hlsDir);

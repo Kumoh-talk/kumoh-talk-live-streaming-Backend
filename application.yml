@@ -38,3 +38,7 @@ aws:
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
+
+streaming:
+  hls-url-prefix: ${HLS_URL}
+  audio-api-url: ${AUDIO_API_URL}
