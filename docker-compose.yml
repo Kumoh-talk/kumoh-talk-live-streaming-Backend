@@ -87,3 +87,4 @@ volumes:
 
 networks:
   kumoh-talk-streaming-network:
+    name: kumoh-talk-streaming-network
