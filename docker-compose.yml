@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile/Dockerfile.spring
+      network: host
     image: kumoh-talk-streaming-spring
     container_name: kumoh-talk-streaming-spring
     ports:
