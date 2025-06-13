@@ -53,7 +53,7 @@ public class StreamingController {
 
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    @PostMapping("/title")
+    @PatchMapping("/title")
     public ResponseEntity<ResponseBody<StreamIdResponse>> changeStreamingTitle(@Valid @RequestBody ChangeStreamingTitleRequest request) {
         StreamIdResponse response = streamingService.changeStreamingTitle(request);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
