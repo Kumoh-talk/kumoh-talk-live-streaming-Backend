@@ -34,7 +34,8 @@ public enum ExceptionCode {
 
     // vote
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "해당 투표를 찾을 수 없음"),
-    MULTIPLE_CHOICES_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "S002", "해당 투표는 하나의 선택지만 허용됩니다."),
+    MULTIPLE_SELECT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "S002", "여러 선택지 불가"),
+    INVALID_SELECT(HttpStatus.BAD_REQUEST, "S003", "존재하지 않는 선택지"),
 
     ;
 
