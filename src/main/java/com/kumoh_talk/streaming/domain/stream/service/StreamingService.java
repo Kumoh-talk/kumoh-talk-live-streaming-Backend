@@ -330,7 +330,11 @@ public class StreamingService {
         }
 
         return StreamKeyListResponse.builder()
-                .streamKeyList(keySet.stream().toList())
+                .streamKeyList(
+                        keySet.stream()
+                                .map(s -> s.replaceFirst(STREAM_CANDIDATE_KEY + ":", ""))
+                                .toList()
+                )
                 .build();
     }
 
