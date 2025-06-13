@@ -146,7 +146,7 @@ public class VoteWebSocketService {
 
         this.deleteVote(vote);
 
-        template.convertAndSend(VOTE_DESTINATION + voteId + "/close", response);
+        template.convertAndSend(VOTE_DESTINATION + streamId + "/close", response);
 
         return response;
     }
