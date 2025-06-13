@@ -124,6 +124,28 @@ public class VoteWebSocketService {
         );
     }
 
+    public VoteResultResponse getVoteResult(Long streamId, Long voteId) {
+        Vote vote = voteRedisRepository.findById(voteId)
+                .orElseThrow(() -> ServiceException.from(ExceptionCode.VOTE_NOT_FOUND));
+
+        if (!streamId.equals(vote.getStreamId())) {
+            throw ServiceException.from(ExceptionCode.VOTE_NOT_FOUND);
+        }
+
+        List<VoteResultResponse.VoteCount> voteCounts = vote.getSelects().stream()
+                .map(Vote.VoteSelect::selectId)
+                .map(s -> VoteResultResponse.VoteCount.builder()
+                        .selectId(s)
+                        .count(stringRedisTemplate.opsForSet().size(SELECT_KEY_PREFIX + voteId + ":" + s))
+                        .build())
+                .toList();
+
+        return VoteResultResponse.builder()
+                .voteId(vote.getId())
+                .voteCounts(voteCounts)
+                .build();
+    }
+
     public VoteResultResponse closeVote(Long streamId, Long voteId) {
         Vote vote = voteRedisRepository.findById(voteId)
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.VOTE_NOT_FOUND));

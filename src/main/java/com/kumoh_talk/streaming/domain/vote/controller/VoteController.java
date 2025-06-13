@@ -33,6 +33,17 @@ public class VoteController {
 
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
+    @GetMapping("/{streamId}/{voteId}")
+    public ResponseEntity<ResponseBody<VoteResultResponse>> getVoteResult(
+            @PathVariable(name = "streamId") Long streamId,
+            @PathVariable(name = "voteId") Long voteId
+    ) {
+        VoteResultResponse response = voteWebSocketService.getVoteResult(streamId, voteId);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
+    }
+
+    // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @DeleteMapping("/{streamId}/{voteId}")
     public ResponseEntity<ResponseBody<VoteResultResponse>> closeVote(
             @PathVariable(name = "streamId") Long streamId,
