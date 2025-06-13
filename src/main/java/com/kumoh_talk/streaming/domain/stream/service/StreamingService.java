@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.StreamIdResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
@@ -334,12 +335,16 @@ public class StreamingService {
     }
 
     @Transactional
-    public void changeStreamingTitle(ChangeStreamingTitleRequest request) {
+    public StreamIdResponse changeStreamingTitle(ChangeStreamingTitleRequest request) {
         Streaming streaming = streamingRedisRepository.findByStreamUploadKey(request.streamKey())
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
 
         streaming.setTitle(request.title());
         streamingRedisRepository.save(streaming);
+
+        return StreamIdResponse.builder()
+                .streamId(streaming.getId())
+                .build();
     }
 
     public StreamingListResponse getStreamingList() {

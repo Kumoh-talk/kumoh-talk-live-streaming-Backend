@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.domain.stream.controller;
 
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.CreateStreamKeyResponse;
+import com.kumoh_talk.streaming.domain.stream.dto.response.StreamIdResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamKeyListResponse;
 import com.kumoh_talk.streaming.domain.stream.dto.response.StreamingListResponse;
 import com.kumoh_talk.streaming.domain.stream.service.StreamingService;
@@ -53,9 +54,9 @@ public class StreamingController {
     // TODO. 추후 ADMIN 계정 받은 후 ROLE_ADMIN만 가능하도록
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     @PostMapping("/title")
-    public ResponseEntity<ResponseBody<Void>> changeStreamingTitle(@Valid @RequestBody ChangeStreamingTitleRequest request) {
-        streamingService.changeStreamingTitle(request);
-        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    public ResponseEntity<ResponseBody<StreamIdResponse>> changeStreamingTitle(@Valid @RequestBody ChangeStreamingTitleRequest request) {
+        StreamIdResponse response = streamingService.changeStreamingTitle(request);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse(response));
     }
 
     @GetMapping("/list")
