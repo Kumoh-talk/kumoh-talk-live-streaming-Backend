@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -28,11 +30,15 @@ public class Chat {
     @Column(nullable = false)
     private Boolean isBlock;
 
+    @Column(nullable = false)
+    private LocalDateTime createTime;
+
     @Builder
     public Chat(String content, Long userId, String nickname) {
         this.content = content;
         this.userId = userId;
         this.nickname = nickname;
         this.isBlock = false;
+        this.createTime = LocalDateTime.now();
     }
 }
