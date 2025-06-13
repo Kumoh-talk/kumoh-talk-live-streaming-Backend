@@ -88,6 +88,7 @@ public class VoteWebSocketService {
         return VoteListResponse.VoteInfo.builder()
                 .voteId(vote.getId())
                 .title(vote.getTitle())
+                .multiple(vote.isMultiple())
                 .selects(
                         vote.getSelects().stream()
                                 .map(VoteListResponse.VoteInfo.VoteSelectWithId::new)

@@ -13,6 +13,7 @@ public record VoteListResponse(
     public record VoteInfo(
         Long voteId,
         String title,
+        Boolean multiple,
         List<VoteSelectWithId> selects
     ) {
         public record VoteSelectWithId(
