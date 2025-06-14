@@ -1,6 +1,7 @@
 package com.kumoh_talk.streaming.domain.stream.service;
 
 import com.kumoh_talk.streaming.domain.stream.constant.StreamingConfig;
+import com.kumoh_talk.streaming.domain.stream.dto.request.CaptionSegmentRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
@@ -16,6 +17,7 @@ import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
+import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.CAPTION_DESTINATION;
 import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.SUBSCRIBER_KEY_PREFIX;
 
 @Slf4j
@@ -49,6 +52,8 @@ public class StreamingService {
     private final StreamingRedisRepository streamingRedisRepository;
 
     private final StringRedisTemplate stringRedisTemplate;
+
+    private final SimpMessagingTemplate template;
 
     public void startStreaming(String name) {
         log.info("stream name: {}", name);
@@ -380,5 +385,16 @@ public class StreamingService {
                 .camUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getCamWatchKey() + "/index.m3u8")
                 .slideUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getSlideWatchKey() + "/index.m3u8")
                 .build();
+    }
+
+    public void postCaption(CaptionSegmentRequest request) {
+        CaptionSegmentResponse response = CaptionSegmentResponse.builder()
+                .duration(request.end() - request.start())
+                .text(request.text())
+                .build();
+
+        template.convertAndSend(CAPTION_DESTINATION, response);
+
+        // TODO. vtt 파일 생성
     }
 }
