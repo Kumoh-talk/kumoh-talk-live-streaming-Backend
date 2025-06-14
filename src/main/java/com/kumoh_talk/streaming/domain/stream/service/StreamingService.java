@@ -3,6 +3,7 @@ package com.kumoh_talk.streaming.domain.stream.service;
 import com.kumoh_talk.streaming.domain.stream.constant.StreamingConfig;
 import com.kumoh_talk.streaming.domain.stream.dto.request.CaptionSegmentRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
+import com.kumoh_talk.streaming.domain.stream.dto.request.SummaryRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import com.kumoh_talk.streaming.domain.stream.persistent.repository.VodRepository;
@@ -33,8 +34,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
-import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.CAPTION_DESTINATION;
-import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.SUBSCRIBER_KEY_PREFIX;
+import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.*;
 
 @Slf4j
 @Service
@@ -400,5 +400,19 @@ public class StreamingService {
         template.convertAndSend(CAPTION_DESTINATION, response);
 
         // TODO. vtt 파일 생성
+    }
+
+    public void postSummary(SummaryRequest request) {
+        Streaming streaming = streamingRedisRepository.findById(Long.parseLong(request.session_id()))
+                .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
+
+        streaming.setTitle(streaming.getTitle() + request.summary());
+        streamingRedisRepository.save(streaming);
+
+        SummaryResponse response = SummaryResponse.builder()
+                .summary(streaming.getSummary())
+                .build();
+
+        template.convertAndSend(SUMMARY_DESTINATION, response);
     }
 }

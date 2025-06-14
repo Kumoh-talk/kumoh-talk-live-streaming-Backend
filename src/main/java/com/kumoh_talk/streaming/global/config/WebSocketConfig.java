@@ -21,7 +21,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 CHAT_DESTINATION,
                 QNA_DESTINATION, QNA_LIST_DESTINATION,
                 VOTE_DESTINATION, VOTE_LIST_DESTINATION,
-                CAPTION_DESTINATION,
+                CAPTION_DESTINATION, SUMMARY_DESTINATION,
                 ERROR_DESTINATION_PREFIX
         );
     }

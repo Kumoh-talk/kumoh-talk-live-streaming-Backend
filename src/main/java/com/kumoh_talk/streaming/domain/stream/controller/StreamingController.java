@@ -2,6 +2,7 @@ package com.kumoh_talk.streaming.domain.stream.controller;
 
 import com.kumoh_talk.streaming.domain.stream.dto.request.CaptionSegmentRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.request.ChangeStreamingTitleRequest;
+import com.kumoh_talk.streaming.domain.stream.dto.request.SummaryRequest;
 import com.kumoh_talk.streaming.domain.stream.dto.response.*;
 import com.kumoh_talk.streaming.domain.stream.service.StreamingService;
 import com.kumoh_talk.streaming.global.auth.vo.AuthenticatedUser;
@@ -72,6 +73,12 @@ public class StreamingController {
     @PostMapping("/caption")
     public ResponseEntity<ResponseBody<Void>> postCaption(@RequestBody CaptionSegmentRequest request) {
         streamingService.postCaption(request);
+        return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
+    }
+
+    @PostMapping("/summary")
+    public ResponseEntity<ResponseBody<Void>> postSummary(@RequestBody SummaryRequest request) {
+        streamingService.postSummary(request);
         return ResponseEntity.ok(ResponseUtil.createSuccessResponse());
     }
 
