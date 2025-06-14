@@ -4,12 +4,14 @@ import com.kumoh_talk.streaming.domain.stream.constant.StreamingConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@Service
 public class AudioApiClient {
 
     private final StreamingConfig streamingConfig;
