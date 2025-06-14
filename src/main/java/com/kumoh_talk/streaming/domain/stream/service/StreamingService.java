@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -50,8 +49,6 @@ public class StreamingService {
     private final StreamingRedisRepository streamingRedisRepository;
 
     private final StringRedisTemplate stringRedisTemplate;
-
-    private final Map<Path, HlsWatcher> watcherMap = new ConcurrentHashMap<>();
 
     public void startStreaming(String name) {
         log.info("stream name: {}", name);
@@ -192,8 +189,6 @@ public class StreamingService {
         Thread watcherThread = new Thread(watcher);
         watcherThread.setDaemon(true);
         watcherThread.start();
-
-        watcherMap.put(dirPath, watcher);
     }
 
     private void extractThumbnail(Path tsFilePath) {
@@ -241,7 +236,6 @@ public class StreamingService {
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
 
-        watcherMap.get(hlsDir).stopWatching();
         List<String> tsList = s3Service.getFileList(streamWatchKey).stream()
                 .filter(path -> path.endsWith(".ts"))
                 .sorted(Comparator.comparingInt(this::extractIndex))
