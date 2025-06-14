@@ -393,6 +393,7 @@ public class StreamingService {
                 .text(request.text())
                 .build();
 
+        log.info("자막 생성: {}", request.text());
         template.convertAndSend(CAPTION_DESTINATION, response);
 
         // TODO. vtt 파일 생성
