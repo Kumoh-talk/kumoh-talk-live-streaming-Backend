@@ -12,14 +12,21 @@ import java.util.Map;
 @Slf4j
 public class AudioApiClient {
 
-    private static final WebClient webClient = WebClient.builder()
-            .baseUrl(StreamingConfig.AUDIO_API_URL())
-            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-            .build();
+    private final StreamingConfig streamingConfig;
 
-    public static void start(String hlsUrl, String sessionId) {
+    private final WebClient webClient;
+
+    public AudioApiClient(StreamingConfig config) {
+        this.streamingConfig = config;
+        this.webClient = WebClient.builder()
+                .baseUrl(config.getAudioApiUrl())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .build();
+    }
+
+    public void start(String hlsUrl, String sessionId) {
         Map<String, Object> startPayload = new HashMap<>();
-        startPayload.put("hls_url", StreamingConfig.HLS_AUDIO_URL_PREFIX() + hlsUrl + "/index.m3u8");
+        startPayload.put("hls_url", streamingConfig.getHlsUrlPrefix() + hlsUrl + "/index.m3u8");
         startPayload.put("session_id", sessionId);
 
         Map startResponse = webClient.post()
@@ -32,7 +39,7 @@ public class AudioApiClient {
         log.info("audio api start request, response: {}", startResponse);
     }
 
-    public static void end(String sessionId) {
+    public void end(String sessionId) {
         Map<String, Object> endPayload = new HashMap<>();
         endPayload.put("session_id", sessionId);
 

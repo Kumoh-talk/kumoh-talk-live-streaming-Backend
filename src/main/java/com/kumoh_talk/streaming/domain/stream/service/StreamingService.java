@@ -47,6 +47,9 @@ public class StreamingService {
     private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
     private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(72);
 
+    private final StreamingConfig streamingConfig;
+    private final AudioApiClient audioApiClient;
+
     private final S3Service s3Service;
     private final VodRepository vodRepository;
     private final StreamingRedisRepository streamingRedisRepository;
@@ -161,7 +164,7 @@ public class StreamingService {
 
         startFfmpegProcess(audioCmd, hlsAudioDir);
 
-        AudioApiClient.start(streamWatchKey, streamUploadKey); // 우선 업로드 키로 전달
+        audioApiClient.start(streamWatchKey, streamUploadKey); // 우선 업로드 키로 전달
 
         return hlsDir;
     }
@@ -250,7 +253,7 @@ public class StreamingService {
 
         if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
-            AudioApiClient.end(streamKey);  // 우선 업로드 키로 전달
+            audioApiClient.end(streamKey);  // 우선 업로드 키로 전달
         }
 
         streamingRedisRepository.delete(streaming);
@@ -382,8 +385,8 @@ public class StreamingService {
 
         return StreamingResponse.builder()
                 .streamId(streamId)
-                .camUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getCamWatchKey() + "/index.m3u8")
-                .slideUrl(StreamingConfig.HLS_URL_PREFIX() + streaming.getSlideWatchKey() + "/index.m3u8")
+                .camUrl(streamingConfig.getAudioApiUrl() + streaming.getCamWatchKey() + "/index.m3u8")
+                .slideUrl(streamingConfig.getAudioApiUrl() + streaming.getSlideWatchKey() + "/index.m3u8")
                 .build();
     }
 
