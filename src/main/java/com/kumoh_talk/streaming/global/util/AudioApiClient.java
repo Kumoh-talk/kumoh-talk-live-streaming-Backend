@@ -29,7 +29,7 @@ public class AudioApiClient {
 
     public void start(String hlsUrl, String sessionId) {
         Map<String, Object> startPayload = new HashMap<>();
-        startPayload.put("hls_url", streamingConfig.getHlsUrlPrefix() + hlsUrl + "/index.m3u8");
+        startPayload.put("hls_url", streamingConfig.getHlsUrlPrefix() + hlsUrl);
         startPayload.put("session_id", sessionId);
 
         try {

@@ -14,6 +14,7 @@ import com.kumoh_talk.streaming.global.exception.ExceptionCode;
 import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
 import com.kumoh_talk.streaming.global.util.AudioApiClient;
+import com.kumoh_talk.streaming.global.util.FfmpegExecutor;
 import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ public class StreamingService {
 
     private final StreamingConfig streamingConfig;
     private final AudioApiClient audioApiClient;
+    private final FfmpegExecutor ffmpegExecutor;
 
     private final S3Service s3Service;
     private final VodRepository vodRepository;
@@ -128,62 +130,19 @@ public class StreamingService {
     }
 
     private String convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
-        String rtmpUrl = "rtmp://kumoh-talk-streaming-nginx-rtmp:1935/live/" + streamUploadKey;
+        String hlsDir = ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
 
-        String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
-        // TODO. ffmpeg 동시 실행되지 않도록 시간차 두기, ffmpeg 실행 리팩토링
-
-        String[] videoCmd = {
-                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
-                "-map", "0:v:0", "-map", "0:a:0?",
-                "-c:v", "copy", "-c:a", "aac", "-f", "hls",
-                "-hls_time", HLS_TIME.toString(),
-                "-hls_list_size", HLS_LIST_SIZE.toString(),
-                "-hls_flags", "delete_segments",
-                "-hls_segment_type", "mpegts",
-                hlsDir + "/index.m3u8"
-        };
-
-        startFfmpegProcess(videoCmd, hlsDir);
-
-        if (type.equals(WEBCAM_TYPE)) {
-            return hlsDir;
+        if (type.equals(DESKTOP_TYPE)) {
+            ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
         }
-
-        String hlsAudioDir = String.join("/", AUDIO_OUTPUT_DIR, streamWatchKey);
-
-        String[] audioCmd = {
-                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
-                "-map", "0:a:0?", "-vn", "-c:a", "aac", "-f", "hls",
-                "-hls_time", HLS_TIME.toString(),
-                "-hls_list_size", HLS_LIST_SIZE.toString(),
-                "-hls_flags", "delete_segments",
-                "-hls_segment_type", "mpegts",
-                hlsAudioDir + "/index.m3u8"
-        };
-
-        startFfmpegProcess(audioCmd, hlsAudioDir);
-
-        audioApiClient.start("hls_audio/" + streamWatchKey, streamUploadKey); // 우선 업로드 키로 전달
 
         return hlsDir;
-    }
-
-    private void startFfmpegProcess(String[] command, String hlsDir) {
-        new File(hlsDir).mkdirs();
-
-        try {
-            new ProcessBuilder(command).inheritIO().start();
-        } catch (IOException e) {
-            log.error("FFmpeg 프로세스 시작 실패({}): {}", hlsDir, e.getMessage());
-            throw ServiceException.from(ExceptionCode.FFMPEG_PROCESS_ERROR);
-        }
     }
 
     private void startWatcher(Path dirPath, String type) {
         HlsWatcher.ThumbnailEventHandler thumbnailHandler;
         if (type.equals(DESKTOP_TYPE)) {
-            thumbnailHandler = this::extractThumbnail;
+            thumbnailHandler = ffmpegExecutor::extractThumbnail;
         } else {
             thumbnailHandler = NOOP_THUMBNAIL_HANDLER;
         }
@@ -197,32 +156,6 @@ public class StreamingService {
         Thread watcherThread = new Thread(watcher);
         watcherThread.setDaemon(true);
         watcherThread.start();
-    }
-
-    private void extractThumbnail(Path tsFilePath) {
-        String inputPath = tsFilePath.toAbsolutePath().toString();
-        Path outputPath = tsFilePath.getParent().resolve(THUMBNAIL_NAME);
-
-        String[] thumbnailCmd = {
-                "ffmpeg", "-y",
-                "-i", inputPath,
-                "-sseof", "-0.1",
-                "-frames:v", "1",
-                "-vf", "scale=" + THUMBNAIL_RESOLUTION,
-                "-pix_fmt", "yuv420p",
-                outputPath.toString()
-        };
-
-        try {
-            Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
-
-            if (process.waitFor() == 0) {
-                s3Service.uploadHlsFile(outputPath);
-                log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
-            }
-        } catch (IOException | InterruptedException e) {
-            log.error("썸네일 생성 중 오류: {}", e.getMessage());
-        }
     }
 
     public void stopStreaming(String name) {
@@ -408,7 +341,7 @@ public class StreamingService {
     }
 
     public void postSummary(SummaryRequest request) {
-        Streaming streaming = streamingRedisRepository.findById(Long.parseLong(request.session_id()))
+        Streaming streaming = streamingRedisRepository.findByStreamUploadKey(request.session_id())
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
 
         streaming.setTitle(streaming.getTitle() + request.summary());
