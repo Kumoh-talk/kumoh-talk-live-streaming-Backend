@@ -120,7 +120,9 @@ public class VoteWebSocketService {
                 );
 
         stringRedisTemplate.opsForSet().add(USER_KEY_PREFIX + voteId + ":" + user.userId(),
-                request.selects().toArray(new String[0])
+                request.selects().stream()
+                        .map(String::valueOf)
+                        .toArray(String[]::new)
         );
     }
 
