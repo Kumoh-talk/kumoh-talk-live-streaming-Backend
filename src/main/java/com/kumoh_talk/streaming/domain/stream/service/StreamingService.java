@@ -385,6 +385,7 @@ public class StreamingService {
 
         return StreamingResponse.builder()
                 .streamId(streamId)
+                .title(streaming.getTitle())
                 .camUrl(streamingConfig.getAudioApiUrl() + streaming.getCamWatchKey() + "/index.m3u8")
                 .slideUrl(streamingConfig.getAudioApiUrl() + streaming.getSlideWatchKey() + "/index.m3u8")
                 .build();

@@ -5,6 +5,7 @@ import lombok.Builder;
 @Builder
 public record StreamingResponse(
     Long streamId,
+    String title,
     String camUrl,
     String slideUrl
 ) {
