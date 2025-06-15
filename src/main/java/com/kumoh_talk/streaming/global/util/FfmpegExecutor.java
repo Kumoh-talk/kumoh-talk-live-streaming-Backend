@@ -30,11 +30,12 @@ public class FfmpegExecutor {
 
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    "ffprobe",
-                    "-v", "error",
-                    "-show_entries", "format=duration",
-                    "-of", "default=noprint_wrappers=1:nokey=1",
-                    rtmpUrl
+                    "ffmpeg",
+                    "-y",
+                    "-t", "1",
+                    "-i", rtmpUrl,
+                    "-f", "null",
+                    "-"
             );
             pb.redirectErrorStream(true);
             Process process = pb.start();
