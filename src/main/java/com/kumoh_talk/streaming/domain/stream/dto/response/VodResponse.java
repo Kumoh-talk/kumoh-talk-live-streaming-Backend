@@ -7,6 +7,7 @@ import java.util.List;
 
 @Builder
 public record VodResponse(
+    String title,
     String slideUrl,
     String slideTsQuery,
     String camUrl,

@@ -45,7 +45,7 @@ public class VodService {
         String camUrl = s3Service.generateSignedUrl(vod.getCamUrl());
 
         return VodResponse.builder()
-                // TODO. vodId, 제목 추가
+                .title(vod.getTitle())
                 .slideUrl(slideUrl)
                 .slideTsQuery(slideUrl.split("\\?")[1])
                 .camUrl(camUrl)
