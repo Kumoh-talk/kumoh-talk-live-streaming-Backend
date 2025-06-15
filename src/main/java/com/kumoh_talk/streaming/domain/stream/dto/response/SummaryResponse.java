@@ -1,4 +1,4 @@
-package com.kumoh_talk.streaming.domain.stream.service;
+package com.kumoh_talk.streaming.domain.stream.dto.response;
 
 import lombok.Builder;
 
