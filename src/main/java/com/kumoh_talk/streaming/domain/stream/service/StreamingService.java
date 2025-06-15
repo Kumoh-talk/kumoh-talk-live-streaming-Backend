@@ -130,6 +130,17 @@ public class StreamingService {
     }
 
     private String convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
+        for (int i = 0; i < 5; i++) {
+            if (ffmpegExecutor.isRtmpStreamReady(streamUploadKey, 2)) {
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.warn("sleep before ffmpeg was interrupted.");
+            }
+        }
+
         String hlsDir = ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
 
         if (type.equals(DESKTOP_TYPE)) {
