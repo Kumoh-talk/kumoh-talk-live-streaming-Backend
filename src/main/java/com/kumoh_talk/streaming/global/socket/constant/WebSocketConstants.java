@@ -4,6 +4,7 @@ public final class WebSocketConstants {
 
     public static final String STOMP_ENDPOINT = "/ws-stomp";
 
+    public static final String TITLE_DESTINATION = "/streaming/title/";
     public static final String CHAT_DESTINATION = "/streaming/chat/";
     public static final String QNA_DESTINATION = "/streaming/qna/";
     public static final String QNA_LIST_DESTINATION = "/streaming/qna-list/";

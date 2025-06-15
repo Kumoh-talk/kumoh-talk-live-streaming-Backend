@@ -352,6 +352,10 @@ public class StreamingService {
         streaming.setTitle(request.title());
         streamingRedisRepository.save(streaming);
 
+        Map<String, String> response = Map.of("title", streaming.getTitle());
+
+        template.convertAndSend(TITLE_DESTINATION + streaming.getId(), response);
+
         return StreamIdResponse.builder()
                 .streamId(streaming.getId())
                 .build();

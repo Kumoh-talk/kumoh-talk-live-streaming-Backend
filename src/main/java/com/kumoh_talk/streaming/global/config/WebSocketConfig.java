@@ -18,6 +18,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/app");
         // 간단한 메모리 브로커를 켜고, /chat, /qna로 구독 처리
         registry.enableSimpleBroker(
+                TITLE_DESTINATION,
                 CHAT_DESTINATION,
                 QNA_DESTINATION, QNA_LIST_DESTINATION,
                 VOTE_DESTINATION, VOTE_LIST_DESTINATION,
