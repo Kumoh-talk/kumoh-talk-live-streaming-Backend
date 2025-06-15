@@ -164,7 +164,7 @@ public class StreamingService {
 
         startFfmpegProcess(audioCmd, hlsAudioDir);
 
-        audioApiClient.start(hlsAudioDir, streamUploadKey); // 우선 업로드 키로 전달
+        audioApiClient.start("hls_audio/" + streamWatchKey, streamUploadKey); // 우선 업로드 키로 전달
 
         return hlsDir;
     }
