@@ -84,7 +84,6 @@ public class FfmpegExecutor {
                 "-i", inputPath,
                 "-frames:v", "1",
                 "-vf", "scale=" + THUMBNAIL_RESOLUTION,
-                "-pix_fmt", "yuv420p",
                 outputPath.toString()
         };
 
