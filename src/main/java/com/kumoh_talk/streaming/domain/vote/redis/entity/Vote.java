@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -17,6 +18,7 @@ public class Vote {
     @Id
     private Long id;
 
+    @Indexed
     private Long streamId;
 
     private String title;
