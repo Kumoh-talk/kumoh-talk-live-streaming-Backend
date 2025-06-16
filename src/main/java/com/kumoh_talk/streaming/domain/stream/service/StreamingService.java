@@ -173,6 +173,8 @@ public class StreamingService {
     }
 
     public void stopStreaming(String name) {
+        log.info("end stream: {}", name);
+
         String[] parts = name.split(STREAMING_TYPE_DELIMITER);
         String streamKey = parts[0];
         String type = parts[1];
@@ -200,7 +202,7 @@ public class StreamingService {
         // TODO. 레디스에 남은 qna, vote 정리
 
         try {
-            deleteDirectoryRecursively(hlsDir);
+//            deleteDirectoryRecursively(hlsDir);
             deleteDirectoryRecursively(hlsAudioDir);
             log.info("스트림 폴더 정리 완료: {}", name);
         } catch (IOException e) {
