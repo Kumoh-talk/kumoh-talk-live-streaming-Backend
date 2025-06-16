@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants.*;
 
@@ -126,7 +127,9 @@ public class QnaWebSocketService {
 
         stringRedisTemplate.delete(QNA_LIKE_SET_KEY + qnaId);
 
-        template.convertAndSend(QNA_DESTINATION + streamId + "/delete", qnaId);
+        Map<String, Long> response = Map.of("qnaId", qnaId);
+
+        template.convertAndSend(QNA_DESTINATION + streamId + "/delete", response);
         log.info("qna 메시지 삭제 - {}", qnaId);
     }
 }
