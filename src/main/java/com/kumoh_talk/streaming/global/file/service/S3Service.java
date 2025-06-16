@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
@@ -58,11 +59,19 @@ public class S3Service {
 
     private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
 
+    public void uploadThumbnail(Path tsFilePath, Path outputPath) {
+        Path tsFile = tsFilePath.getName(tsFilePath.getNameCount() - 1);
+        String streamKey = tsFile.toString().split("\\.")[0].replaceAll("\\d+", "");
+
+        String objectName = VOD_PATH + "/" + streamKey + "/" + THUMBNAIL_NAME;
+        this.putObjectRequest(objectName, outputPath);
+    }
+
     public void uploadHlsFile(Path filePath) {
         int dirCount = filePath.getNameCount();
 //        Path streamKeyAndFileName = filePath.subpath(dirCount - 2, dirCount);
         Path streamKeyAndFileName = filePath.getName(dirCount - 1);
-        String streamKey = streamKeyAndFileName.toString().split("\\.")[0];
+        String streamKey = streamKeyAndFileName.toString().split("\\.")[0].replaceAll("\\d+", "");
 
         String objectName = VOD_PATH + "/" + streamKey + "/" + streamKeyAndFileName;
 
@@ -85,11 +94,15 @@ public class S3Service {
             s3Client.putObject(putObjectsRequest, RequestBody.fromFile(filePath));
             log.info("파일 업로드 완료: {}", filePath);
         } catch (Exception e) {
+            if (!Files.exists(filePath)) {
+                log.warn("파일이 존재하지 않아 재시도하지 않음: {}", filePath);
+                return;
+            }
             if (!isRetry) {
                 log.warn("업로드 실패, 재시도 중...: {}", filePath);
                 putObjectRequest(objectName, filePath, true);
             } else {
-                log.error("업로드 재시도 실패: {}", filePath, e);
+                log.error("업로드 재시도 실패: {} - {}", filePath, e.getMessage());
             }
         }
     }
