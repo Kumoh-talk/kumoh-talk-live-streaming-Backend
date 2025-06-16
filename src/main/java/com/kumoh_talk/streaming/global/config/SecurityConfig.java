@@ -30,6 +30,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(FormLoginConfigurer::disable)
 
+                .headers(headers -> headers
+                    .frameOptions(frameOptions -> frameOptions.disable())
+                )
+
                 .addFilterBefore(new JwtAuthenticationFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class)
         ;
 
