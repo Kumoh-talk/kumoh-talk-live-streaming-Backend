@@ -60,9 +60,11 @@ public class S3Service {
 
     public void uploadHlsFile(Path filePath) {
         int dirCount = filePath.getNameCount();
-        Path streamKeyAndFileName = filePath.subpath(dirCount - 2, dirCount);
+//        Path streamKeyAndFileName = filePath.subpath(dirCount - 2, dirCount);
+        Path streamKeyAndFileName = filePath.getName(dirCount - 1);
+        String streamKey = streamKeyAndFileName.toString().split("\\.")[0];
 
-        String objectName = VOD_PATH + "/" + streamKeyAndFileName;
+        String objectName = VOD_PATH + "/" + streamKey + "/" + streamKeyAndFileName;
 
         this.putObjectRequest(objectName, filePath);
     }
