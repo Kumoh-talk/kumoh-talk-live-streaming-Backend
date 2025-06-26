@@ -117,8 +117,7 @@ public class FfmpegExecutor {
             Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
 
             if (process.waitFor() == 0) {
-//                s3Service.uploadHlsFile(outputPath);
-                s3Service.uploadThumbnail(tsFilePath, outputPath);
+                s3Service.uploadHlsFile(outputPath);
                 log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
             }
         } catch (IOException | InterruptedException e) {
