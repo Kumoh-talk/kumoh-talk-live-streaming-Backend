@@ -78,8 +78,7 @@ public class StreamingService {
 
         String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
-//        startWatcher(Path.of(hlsDir), type);
-        startWatcher(Path.of(HLS_OUTPUT_DIR), type);
+        startWatcher(Path.of(hlsDir), type);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
