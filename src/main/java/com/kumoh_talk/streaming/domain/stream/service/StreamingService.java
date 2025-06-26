@@ -122,28 +122,26 @@ public class StreamingService {
     }
 
     private String getStreamWatchKey(Streaming streaming, String type) {
-//        if (type.equals(DESKTOP_TYPE)) {
-//            return streaming.getSlideWatchKey();
-//        }
-//
-//        return streaming.getCamWatchKey();
-        return streaming.getStreamUploadKey() + STREAMING_TYPE_DELIMITER + type;
+        if (type.equals(DESKTOP_TYPE)) {
+            return streaming.getSlideWatchKey();
+        }
+
+        return streaming.getCamWatchKey();
     }
 
     private String convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
-//        for (int i = 0; i < 5; i++) {
-//            if (ffmpegExecutor.isRtmpStreamReady(streamUploadKey, 2)) {
-//                break;
-//            }
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                log.warn("sleep before ffmpeg was interrupted.");
-//            }
-//        }
+        for (int i = 0; i < 5; i++) {
+            if (ffmpegExecutor.isRtmpStreamReady(streamUploadKey, 2)) {
+                break;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.warn("sleep before ffmpeg was interrupted.");
+            }
+        }
 
-//        String hlsDir = ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
-        String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
+        String hlsDir = ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
 
         if (type.equals(DESKTOP_TYPE)) {
             ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
@@ -181,7 +179,13 @@ public class StreamingService {
         Streaming streaming = streamingRedisRepository.findByStreamUploadKey(streamKey)
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.INVALID_STREAM_KEY));
 
-        String streamWatchKey = getStreamWatchKey(streaming, type);
+        boolean isSlideType = type.equals(DESKTOP_TYPE);
+        String streamWatchKey;
+        if (isSlideType) {
+            streamWatchKey = streaming.getSlideWatchKey();
+        } else {
+            streamWatchKey = streaming.getStreamUploadKey();
+        }
 
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
@@ -192,7 +196,8 @@ public class StreamingService {
                 .toList();
         createAndUploadM3U8(streamWatchKey, tsList);
 
-        if (type.equals(DESKTOP_TYPE)) {
+
+        if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
             audioApiClient.end(streamKey);  // 우선 업로드 키로 전달
         }
