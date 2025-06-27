@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.concurrent.TimeUnit;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
 
@@ -24,30 +23,6 @@ public class FfmpegExecutor {
 
     private final AudioApiClient audioApiClient;
     private final S3Service s3Service;
-
-    public boolean isRtmpStreamReady(String streamUploadKey, int timeoutSeconds) {
-        String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
-
-        try {
-            ProcessBuilder pb = new ProcessBuilder(
-                    "ffmpeg",
-                    "-y",
-                    "-t", "1",
-                    "-i", rtmpUrl,
-                    "-f", "null",
-                    "-"
-            );
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-
-            boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
-            return finished && process.exitValue() == 0;
-        } catch (Exception e) {
-            log.warn("RTMP 스트림 준비 확인 실패", e);
-            return false;
-        }
-    }
-
 
     public String startVideoFfmpeg(String streamUploadKey, String streamWatchKey) {
         String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
