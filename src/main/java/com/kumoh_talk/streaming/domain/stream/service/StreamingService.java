@@ -158,6 +158,8 @@ public class StreamingService {
             streamWatchKey = streaming.getStreamUploadKey();
         }
 
+        log.info("streamWatchKey: {}", streamWatchKey);
+
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
         Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
 

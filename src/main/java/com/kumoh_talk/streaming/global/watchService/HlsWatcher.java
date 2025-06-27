@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.HLS_TIME;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 @Slf4j
 public class HlsWatcher implements Runnable {
@@ -33,7 +34,7 @@ public class HlsWatcher implements Runnable {
 
     @Override
     public void run() {
-        waitForHlsSegment(Duration.ofSeconds(40));
+        waitForHlsSegment(Duration.ofSeconds(20));
 
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
             pathToWatch.register(watchService, ENTRY_CREATE);
@@ -47,7 +48,7 @@ public class HlsWatcher implements Runnable {
 
                 for (WatchEvent<?> event : key.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
-                    if (kind != ENTRY_CREATE) {
+                    if (kind != ENTRY_CREATE || kind != ENTRY_MODIFY) {
                         continue;
                     }
 
