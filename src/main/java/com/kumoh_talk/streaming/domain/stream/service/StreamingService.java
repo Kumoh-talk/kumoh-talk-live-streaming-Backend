@@ -177,11 +177,11 @@ public class StreamingService {
         // TODO. 레디스에 남은 qna, vote 정리
 
         try {
-//            deleteDirectoryRecursively(hlsDir);
+            deleteDirectoryRecursively(hlsDir);
             deleteDirectoryRecursively(hlsAudioDir);
-            log.info("스트림 폴더 정리 완료: {}", name);
+            log.info("스트림 폴더 정리 완료: {}", hlsDir);
         } catch (IOException e) {
-            log.error("폴더 정리 중 오류 발생: {}", name, e);
+            log.error("폴더 정리 중 오류 발생: {}", hlsDir, e);
         }
     }
 
