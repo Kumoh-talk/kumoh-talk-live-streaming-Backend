@@ -15,7 +15,7 @@ import com.kumoh_talk.streaming.global.exception.ServiceException;
 import com.kumoh_talk.streaming.global.file.service.S3Service;
 import com.kumoh_talk.streaming.global.util.AudioApiClient;
 import com.kumoh_talk.streaming.global.util.FfmpegExecutor;
-import com.kumoh_talk.streaming.global.watchService.HlsWatcher;
+import com.kumoh_talk.streaming.global.watchService.HlsWatcherRunner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -42,8 +42,6 @@ import static com.kumoh_talk.streaming.global.socket.constant.WebSocketConstants
 @RequiredArgsConstructor
 public class StreamingService {
 
-    private static final HlsWatcher.ThumbnailEventHandler NOOP_THUMBNAIL_HANDLER = path -> {};
-
     private static final String STREAMING_ID_KEY = "streaming:id:seq";
     private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
     private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(72);
@@ -51,6 +49,7 @@ public class StreamingService {
     private final StreamingConfig streamingConfig;
     private final AudioApiClient audioApiClient;
     private final FfmpegExecutor ffmpegExecutor;
+    private final HlsWatcherRunner hlsWatcherRunner;
 
     private final S3Service s3Service;
     private final VodRepository vodRepository;
@@ -78,7 +77,9 @@ public class StreamingService {
 
         String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
-        startWatcher(Path.of(hlsDir), type);
+        hlsWatcherRunner.startWatcher(Path.of(hlsDir), type);
+
+        log.info("{} 송출 ok", name);
     }
 
     private boolean isValidStreamFormat(String[] parts) {
@@ -137,25 +138,6 @@ public class StreamingService {
         }
 
         return hlsDir;
-    }
-
-    private void startWatcher(Path dirPath, String type) {
-        HlsWatcher.ThumbnailEventHandler thumbnailHandler;
-        if (type.equals(DESKTOP_TYPE)) {
-            thumbnailHandler = ffmpegExecutor::extractThumbnail;
-        } else {
-            thumbnailHandler = NOOP_THUMBNAIL_HANDLER;
-        }
-
-        HlsWatcher watcher = HlsWatcher.builder()
-                .directoryPath(dirPath)
-                .fileEventHandler(s3Service::uploadHlsFile)
-                .thumbnailEventHandler(thumbnailHandler)
-                .build();
-
-        Thread watcherThread = new Thread(watcher);
-        watcherThread.setDaemon(true);
-        watcherThread.start();
     }
 
     public void stopStreaming(String name) {
