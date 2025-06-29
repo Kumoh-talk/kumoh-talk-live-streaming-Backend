@@ -48,12 +48,6 @@ public class FfmpegExecutor {
 
     @Async
     public void startAudioFfmpeg(String streamUploadKey, String streamWatchKey) {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            log.warn("Audio FFmpeg sleep interrupted.");
-        }
-
         String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
 
         String hlsAudioDir = AUDIO_OUTPUT_DIR + "/" + streamWatchKey;
@@ -70,6 +64,12 @@ public class FfmpegExecutor {
         };
 
         startFfmpegProcess(audioCmd, hlsAudioDir);
+
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            log.warn("Audio FFmpeg sleep interrupted.");
+        }
 
         audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey); // 우선 업로드 키로 전달
     }
