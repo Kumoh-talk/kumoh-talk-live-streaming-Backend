@@ -188,7 +188,6 @@ public class StreamingService {
                 .toList();
         createAndUploadM3U8(streamWatchKey, tsList);
 
-
         if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
             audioApiClient.end(streamKey);  // 우선 업로드 키로 전달
@@ -203,15 +202,17 @@ public class StreamingService {
         }
 
         Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
+
+        if (!isSlideType) {
+            return;
+        }
+
         try {
-            deleteDirectoryRecursively(hlsDir);
-
-            if (isSlideType) {
-                return;
-            }
-
             Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
             deleteDirectoryRecursively(hlsAudioDir);
+
+            File thumbnail = new File(THUMBNAIL_DIR + "/" + streamWatchKey + "_" + THUMBNAIL_NAME);
+            thumbnail.delete();
 
             log.info("스트림 폴더 정리 완료: {}", hlsDir);
         } catch (IOException e) {

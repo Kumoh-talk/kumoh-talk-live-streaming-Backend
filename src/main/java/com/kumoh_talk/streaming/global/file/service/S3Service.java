@@ -84,7 +84,6 @@ public class S3Service {
                     .build();
 
             s3Client.putObject(putObjectsRequest, RequestBody.fromFile(filePath));
-            log.info("파일 업로드 완료: {}", filePath);
         } catch (Exception e) {
             if (!isRetry) {
                 log.warn("업로드 실패, 재시도 중...: {}", filePath);
