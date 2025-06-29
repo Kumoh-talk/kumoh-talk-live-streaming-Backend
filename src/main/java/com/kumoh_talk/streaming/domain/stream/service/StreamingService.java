@@ -311,6 +311,7 @@ public class StreamingService {
                 .title(streaming.getTitle())
                 .camUrl(streamingConfig.getHlsUrlPrefix() + streaming.getCamWatchKey() + "/index.m3u8")
                 .slideUrl(streamingConfig.getHlsUrlPrefix() + streaming.getSlideWatchKey() + "/index.m3u8")
+                .summary(streaming.getSummary())
                 .build();
     }
 

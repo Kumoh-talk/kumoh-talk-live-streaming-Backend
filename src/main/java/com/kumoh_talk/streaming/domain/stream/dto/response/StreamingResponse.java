@@ -7,6 +7,7 @@ public record StreamingResponse(
     Long streamId,
     String title,
     String camUrl,
-    String slideUrl
+    String slideUrl,
+    String summary
 ) {
 }
