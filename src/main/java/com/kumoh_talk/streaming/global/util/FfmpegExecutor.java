@@ -48,6 +48,12 @@ public class FfmpegExecutor {
 
     @Async
     public void startAudioFfmpeg(String streamUploadKey, String streamWatchKey) {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            log.warn("Audio FFmpeg sleep interrupted.");
+        }
+
         String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
 
         String hlsAudioDir = AUDIO_OUTPUT_DIR + "/" + streamWatchKey;
@@ -63,15 +69,20 @@ public class FfmpegExecutor {
                 hlsAudioUrl
         };
 
-        startFfmpegProcess(audioCmd, hlsAudioDir);
+        new File(hlsAudioDir).mkdirs();
 
         try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            log.warn("Audio FFmpeg sleep interrupted.");
+            Process process = new ProcessBuilder(audioCmd).inheritIO().start();
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey);
+            } else {
+                log.info("FFmpeg 종료 코드: {}", exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("오디오 분리 실패({}): {}", hlsAudioDir, e.getMessage());
+            throw ServiceException.from(ExceptionCode.FFMPEG_PROCESS_ERROR);
         }
-
-        audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey); // 우선 업로드 키로 전달
     }
 
     public void extractThumbnail(Path tsFilePath, String streamWatchKey) {
@@ -91,7 +102,7 @@ public class FfmpegExecutor {
         };
 
         try {
-            Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
+            Process process = new ProcessBuilder(thumbnailCmd).inheritIO().start();
 
             if (process.waitFor() == 0) {
                 s3Service.uploadThumbnail(streamWatchKey, outputPath);
