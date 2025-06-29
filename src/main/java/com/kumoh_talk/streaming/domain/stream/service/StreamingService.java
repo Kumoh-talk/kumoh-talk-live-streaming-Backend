@@ -45,6 +45,7 @@ public class StreamingService {
     private static final String STREAMING_ID_KEY = "streaming:id:seq";
     private static final String STREAM_CANDIDATE_KEY = "stream:candidate:keys";
     private static final Duration STREAM_CANDIDATE_KEY_TTL = Duration.ofHours(72);
+    private static final String STREAM_START_LOCK_PREFIX = "lock:streaming:";
 
     private final StreamingConfig streamingConfig;
     private final AudioApiClient audioApiClient;
@@ -75,9 +76,9 @@ public class StreamingService {
 
         String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type);
 
-        String hlsDir = convertRtmpToHlsWithAudio(name, streamWatchKey, type);
+        convertRtmpToHlsWithAudio(name, streamWatchKey, type);
 
-        hlsWatcherRunner.startWatcher(Path.of(hlsDir), type);
+        hlsWatcherRunner.startWatcher(streamWatchKey, type);
 
         log.info("{} 송출 ok", name);
     }
@@ -104,22 +105,48 @@ public class StreamingService {
     }
 
     private String getOrCreateStreamWatchKey(String streamKey, String type) {
-        Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
-        if (savedStreaming.isPresent()) {
-            return getStreamWatchKey(savedStreaming.get(), type);
+        String lockKey = STREAM_START_LOCK_PREFIX + streamKey;
+
+        boolean lockAcquired = Boolean.TRUE.equals(
+                stringRedisTemplate.opsForValue().setIfAbsent(lockKey, "locked", Duration.ofMillis(500))
+        );
+
+        if (!lockAcquired) { // 다른 스레드가 락을 얻고 있는 경우
+            Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
+            if (savedStreaming.isPresent()) {
+                return getStreamWatchKey(savedStreaming.get(), type);
+            }
+            // 락은 있지만 redis 저장은 아직 안 된 경우
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ignored) {}
+
+            Streaming streaming = streamingRedisRepository.findByStreamUploadKey(streamKey)
+                    .orElseThrow(() -> new IllegalStateException("스트리밍 정보 동기화 실패"));
+
+            return getStreamWatchKey(streaming, type);
         }
 
-        Long id = stringRedisTemplate.opsForValue().increment(STREAMING_ID_KEY);
-        Streaming streaming = Streaming.builder()
-                .id(id)
-                .startTime(LocalDateTime.now())
-                .title("")
-                .streamUploadKey(streamKey)
-                .build();
-        Streaming newStreaming = streamingRedisRepository.save(streaming);
-        log.info("새로운 스트리밍 생성 - uploadKey:{}, camKey: {}, slideKey: {}", streamKey, newStreaming.getCamWatchKey(), newStreaming.getSlideWatchKey());
+        try {
+            Optional<Streaming> savedStreaming = streamingRedisRepository.findByStreamUploadKey(streamKey);
+            if (savedStreaming.isPresent()) {
+                return getStreamWatchKey(savedStreaming.get(), type);
+            }
 
-        return getStreamWatchKey(newStreaming, type);
+            Long id = stringRedisTemplate.opsForValue().increment(STREAMING_ID_KEY);
+            Streaming streaming = Streaming.builder()
+                    .id(id)
+                    .startTime(LocalDateTime.now())
+                    .title("")
+                    .streamUploadKey(streamKey)
+                    .build();
+            Streaming newStreaming = streamingRedisRepository.save(streaming);
+            log.info("새로운 스트리밍 생성 - uploadKey: {}, camKey: {}, slideKey: {}", streamKey, newStreaming.getCamWatchKey(), newStreaming.getSlideWatchKey());
+
+            return getStreamWatchKey(newStreaming, type);
+        } finally {
+            stringRedisTemplate.delete(lockKey);
+        }
     }
 
     private String getStreamWatchKey(Streaming streaming, String type) {
@@ -130,14 +157,10 @@ public class StreamingService {
         return streaming.getCamWatchKey();
     }
 
-    private String convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
-        String hlsDir = ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
-
+    private void convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
         if (type.equals(DESKTOP_TYPE)) {
             ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
         }
-
-        return hlsDir;
     }
 
     public void stopStreaming(String name) {
@@ -155,14 +178,10 @@ public class StreamingService {
         if (isSlideType) {
             streamWatchKey = streaming.getSlideWatchKey();
         } else {
-            streamWatchKey = streaming.getStreamUploadKey();
+            streamWatchKey = streaming.getCamWatchKey();
         }
 
-        log.info("streamWatchKey: {}", streamWatchKey);
-
-        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
-        Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
-
+        // TODO. VOD에서 5초 정도 잘리는 문제(hls가 생성되고 업로드 되기 전에 m3u8 파일 생성) 해결
         List<String> tsList = s3Service.getFileList(streamWatchKey).stream()
                 .filter(path -> path.endsWith(".ts"))
                 .sorted(Comparator.comparingInt(this::extractIndex))
@@ -175,12 +194,24 @@ public class StreamingService {
             audioApiClient.end(streamKey);  // 우선 업로드 키로 전달
         }
 
-        streamingRedisRepository.delete(streaming);
-        // TODO. 레디스에 남은 qna, vote 정리
+        Long result = stringRedisTemplate.opsForValue().increment("stream:done:count:" + streamKey);
 
+        if (result != null && result == 2) {
+            streamingRedisRepository.delete(streaming);
+            // TODO. 레디스에 남은 qna, vote 정리
+        }
+
+        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
         try {
             deleteDirectoryRecursively(hlsDir);
+
+            if (isSlideType) {
+                return;
+            }
+
+            Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
             deleteDirectoryRecursively(hlsAudioDir);
+
             log.info("스트림 폴더 정리 완료: {}", hlsDir);
         } catch (IOException e) {
             log.error("폴더 정리 중 오류 발생: {}", hlsDir, e);
@@ -189,8 +220,12 @@ public class StreamingService {
 
     private int extractIndex(String tsPath) {
         String filename = tsPath.substring(tsPath.lastIndexOf("/") + 1);
-        String numberPart = filename.replaceAll("\\D+", "");
-        return Integer.parseInt(numberPart);
+
+        int dashIndex = filename.lastIndexOf('-');
+        int dotIndex = filename.lastIndexOf('.');
+        String numberPart = filename.substring(dashIndex + 1, dotIndex);
+
+        return Integer.parseInt(numberPart); // 이 부분은 int 범위만 가능
     }
 
     private void saveVodEntity(Streaming streaming, int seconds) {
@@ -288,7 +323,7 @@ public class StreamingService {
                 .map(streaming -> StreamingListResponse.StreamingInfo.builder()
                         .streamId(streaming.getId())
                         .title(streaming.getTitle())
-                        .thumbnailUrl(s3Service.generateThumbnailUrl(VOD_PATH + "/" + streaming.getSlideWatchKey()))
+                        .thumbnailUrl(s3Service.generateThumbnailUrl(streaming.getSlideWatchKey()))
                         .viewers(getSubscriberCount(streaming.getId().toString()))
                         .build()
                 ).toList();
@@ -309,8 +344,8 @@ public class StreamingService {
         return StreamingResponse.builder()
                 .streamId(streamId)
                 .title(streaming.getTitle())
-                .camUrl(streamingConfig.getHlsUrlPrefix() + streaming.getCamWatchKey() + "/index.m3u8")
-                .slideUrl(streamingConfig.getHlsUrlPrefix() + streaming.getSlideWatchKey() + "/index.m3u8")
+                .camUrl(streamingConfig.getHlsUrlPrefix() + streaming.getCamWatchKey() + ".m3u8")
+                .slideUrl(streamingConfig.getHlsUrlPrefix() + streaming.getSlideWatchKey() + ".m3u8")
                 .summary(streaming.getSummary())
                 .build();
     }

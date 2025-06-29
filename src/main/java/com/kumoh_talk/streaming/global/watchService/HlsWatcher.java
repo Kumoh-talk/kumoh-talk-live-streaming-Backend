@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.HLS_OUTPUT_DIR;
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.HLS_TIME;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
@@ -19,14 +20,16 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 @Slf4j
 public class HlsWatcher implements Runnable {
 
-    private final Path pathToWatch;
+    private final Path pathToWatch = Path.of(HLS_OUTPUT_DIR);
+
+    private final String streamWatchKey;
     private final FileEventHandler fileEventHandler;
     private final ThumbnailEventHandler thumbnailEventHandler;
     private volatile boolean watching;
 
     @Builder
-    public HlsWatcher(Path directoryPath, FileEventHandler fileEventHandler, ThumbnailEventHandler thumbnailEventHandler) {
-        this.pathToWatch = directoryPath;
+    public HlsWatcher(String streamWatchKey, FileEventHandler fileEventHandler, ThumbnailEventHandler thumbnailEventHandler) {
+        this.streamWatchKey = streamWatchKey;
         this.fileEventHandler = fileEventHandler;
         this.thumbnailEventHandler = thumbnailEventHandler;
         this.watching = true;
@@ -37,27 +40,27 @@ public class HlsWatcher implements Runnable {
         waitForHlsSegment(Duration.ofSeconds(20));
 
         try (WatchService watchService = FileSystems.getDefault().newWatchService()) {
-            pathToWatch.register(watchService, ENTRY_CREATE);
+            pathToWatch.register(watchService, ENTRY_CREATE, ENTRY_MODIFY);
 
             while (watching) {
                 WatchKey key = watchService.poll(HLS_TIME * 3L + 10, TimeUnit.SECONDS);
                 if (key == null) {
-                    log.info("파일 생성 감지 자동 종료: {}", pathToWatch);
+                    log.info("파일 생성 감지 자동 종료: {}", streamWatchKey);
                     break;
                 }
 
                 for (WatchEvent<?> event : key.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
-                    if (kind != ENTRY_CREATE || kind != ENTRY_MODIFY) {
+                    if (kind != ENTRY_CREATE && kind != ENTRY_MODIFY) {
                         continue;
                     }
 
-                    Path createdFilePath = pathToWatch.resolve((Path) event.context());
-                    if (!createdFilePath.toString().endsWith(".ts")) {
+                    String filename = event.context().toString();
+                    if (!filename.endsWith(".ts") || !filename.startsWith(streamWatchKey)) {
                         continue;
                     }
 
-                    fileEventHandler.handleNewFile(createdFilePath);
+                    fileEventHandler.handleNewFile(filename, streamWatchKey);
                 }
 
                 if (!key.reset()) {
@@ -73,12 +76,12 @@ public class HlsWatcher implements Runnable {
         Instant start = Instant.now();
 
         while (Duration.between(start, Instant.now()).compareTo(timeout) < 0) {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(pathToWatch, "*.ts")) {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(pathToWatch, streamWatchKey + "*.ts")) {
                 Iterator<Path> iterator = stream.iterator();
                 if (iterator.hasNext()) {
                     Path tsFilePath = iterator.next();
                     log.info("{}: HLS 세그먼트 감지됨", tsFilePath);
-                    thumbnailEventHandler.handleThumbnail(tsFilePath);
+                    thumbnailEventHandler.handleThumbnail(tsFilePath, streamWatchKey);
                     return;
                 }
             } catch (IOException e) {
@@ -101,12 +104,12 @@ public class HlsWatcher implements Runnable {
 
     @FunctionalInterface
     public interface FileEventHandler {
-        void handleNewFile(Path filePath);
+        void handleNewFile(String filename, String streamWatchKey);
     }
 
     @FunctionalInterface
     public interface ThumbnailEventHandler {
-        void handleThumbnail(Path filePath);
+        void handleThumbnail(Path filePath, String streamWatchKey);
     }
 
     public void stopWatching() {

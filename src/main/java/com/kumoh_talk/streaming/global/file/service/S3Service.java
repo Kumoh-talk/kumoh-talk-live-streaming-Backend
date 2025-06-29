@@ -58,13 +58,10 @@ public class S3Service {
 
     private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
 
-    public void uploadHlsFile(Path filePath) {
-        int dirCount = filePath.getNameCount();
-        Path streamKeyAndFileName = filePath.subpath(dirCount - 2, dirCount);
+    public void uploadHlsFile(String filename, String streamWatchKey) {
+        String objectName = String.join("/", VOD_PATH, streamWatchKey, filename);
 
-        String objectName = VOD_PATH + "/" + streamKeyAndFileName;
-
-        this.putObjectRequest(objectName, filePath);
+        this.putObjectRequest(objectName, Path.of(HLS_OUTPUT_DIR, filename));
     }
 
     private void putObjectRequest(String objectName, Path filePath) {
@@ -87,7 +84,7 @@ public class S3Service {
                 log.warn("업로드 실패, 재시도 중...: {}", filePath);
                 putObjectRequest(objectName, filePath, true);
             } else {
-                log.error("업로드 재시도 실패: {}", filePath, e);
+                log.error("업로드 재시도 실패: {}: {}", filePath, e.getMessage());
             }
         }
     }
@@ -128,12 +125,12 @@ public class S3Service {
         }
     }
 
-    public String generateThumbnailUrl(String vodUrl) {
-        return this.generatePreSignedUrl(getThumbnailUrl(vodUrl));
+    public String generateThumbnailUrl(String streamWatchKey) {
+        return this.generatePreSignedUrl(getThumbnailUrl(streamWatchKey));
     }
 
-    private String getThumbnailUrl(String vodUrl) {
-        return vodUrl + "/" + THUMBNAIL_NAME;
+    private String getThumbnailUrl(String streamWatchKey) {
+        return String.join("/", VOD_PATH, streamWatchKey, streamWatchKey + "_" + THUMBNAIL_NAME);
     }
 
     private String generatePreSignedUrl(String resourcePath) {

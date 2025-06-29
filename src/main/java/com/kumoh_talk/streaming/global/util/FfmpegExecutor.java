@@ -74,9 +74,10 @@ public class FfmpegExecutor {
         audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey); // 우선 업로드 키로 전달
     }
 
-    public void extractThumbnail(Path tsFilePath) {
+    public void extractThumbnail(Path tsFilePath, String streamWatchKey) {
         String inputPath = tsFilePath.toAbsolutePath().toString();
-        Path outputPath = tsFilePath.getParent().resolve(THUMBNAIL_NAME);
+        String filename = streamWatchKey + "_" + THUMBNAIL_NAME;
+        Path outputPath = tsFilePath.getParent().resolve(filename);
 
         String[] thumbnailCmd = {
                 "ffmpeg", "-y",
@@ -92,7 +93,7 @@ public class FfmpegExecutor {
             Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
 
             if (process.waitFor() == 0) {
-                s3Service.uploadHlsFile(outputPath);
+                s3Service.uploadHlsFile(filename, streamWatchKey);
                 log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
             }
         } catch (IOException | InterruptedException e) {
