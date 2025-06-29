@@ -351,6 +351,7 @@ public class StreamingService {
     }
 
     public void postCaption(CaptionSegmentRequest request) {
+        log.info("자막: {}", request.text());
         CaptionSegmentResponse response = CaptionSegmentResponse.builder()
                 .duration(request.end() - request.start())
                 .text(request.text())
@@ -363,6 +364,7 @@ public class StreamingService {
     }
 
     public void postSummary(SummaryRequest request) {
+        log.info("요약: {}", request.summary());
         Streaming streaming = streamingRedisRepository.findByStreamUploadKey(request.session_id())
                 .orElseThrow(() -> ServiceException.from(ExceptionCode.STREAMING_NOT_FOUND));
 
