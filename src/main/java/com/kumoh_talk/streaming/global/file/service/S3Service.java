@@ -125,12 +125,12 @@ public class S3Service {
         }
     }
 
-    public String generateThumbnailUrl(String streamWatchKey) {
-        return this.generatePreSignedUrl(getThumbnailUrl(streamWatchKey));
+    public String generateThumbnailUrl(String slideUrl) {
+        return this.generatePreSignedUrl(getThumbnailUrl(slideUrl));
     }
 
     private String getThumbnailUrl(String streamWatchKey) {
-        return String.join("/", VOD_PATH, streamWatchKey, streamWatchKey + "_" + THUMBNAIL_NAME);
+        return streamWatchKey + "/" + streamWatchKey + "_" + THUMBNAIL_NAME;
     }
 
     private String generatePreSignedUrl(String resourcePath) {
