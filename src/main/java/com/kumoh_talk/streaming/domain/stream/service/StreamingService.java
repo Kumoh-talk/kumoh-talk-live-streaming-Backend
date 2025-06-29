@@ -196,7 +196,7 @@ public class StreamingService {
 
         Long result = stringRedisTemplate.opsForValue().increment("stream:done:count:" + streamKey);
 
-        if (result != null && result == 2) {
+        if (result != null && result >= 2) {
             log.info("스트리밍 삭제: {}", streaming.getId());
             streamingRedisRepository.deleteById(streaming.getId());
             // TODO. 레디스에 남은 qna, vote 정리
