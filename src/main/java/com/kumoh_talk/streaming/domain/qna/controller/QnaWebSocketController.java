@@ -57,7 +57,7 @@ public class QnaWebSocketController {
 		StompHeaderAccessor headerAccessor
 	) {
 		AuthenticatedUser authenticatedUser =
-				(AuthenticatedUser) webSocketAuthValidator.validateTokenAndRole(headerAccessor, Role.ROLE_ADMIN.name());
+				(AuthenticatedUser) webSocketAuthValidator.validateTokenAndRole(headerAccessor, Role.ROLE_USER.name());
 		qnaWebSocketService.deleteQna(streamId, qnaId, authenticatedUser);
 	}
 }
