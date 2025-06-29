@@ -344,8 +344,8 @@ public class StreamingService {
         return StreamingResponse.builder()
                 .streamId(streamId)
                 .title(streaming.getTitle())
-                .camUrl(streamingConfig.getHlsUrlPrefix() + streaming.getCamWatchKey() + ".m3u8")
-                .slideUrl(streamingConfig.getHlsUrlPrefix() + streaming.getSlideWatchKey() + ".m3u8")
+                .camUrl(streamingConfig.getHlsUrlPrefix() + "hls/" + streaming.getCamWatchKey() + ".m3u8")
+                .slideUrl(streamingConfig.getHlsUrlPrefix() + "hls/" + streaming.getSlideWatchKey() + ".m3u8")
                 .summary(streaming.getSummary())
                 .build();
     }
