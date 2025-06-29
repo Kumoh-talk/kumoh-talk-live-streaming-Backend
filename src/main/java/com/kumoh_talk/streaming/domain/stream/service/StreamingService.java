@@ -76,7 +76,7 @@ public class StreamingService {
 
         String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type);
 
-        convertRtmpToHlsWithAudio(name, streamWatchKey, type);
+        convertRtmpToHlsWithAudio(streamKey, streamWatchKey, type);
 
         hlsWatcherRunner.startWatcher(streamWatchKey, type);
 
