@@ -64,6 +64,12 @@ public class S3Service {
         this.putObjectRequest(objectName, Path.of(HLS_OUTPUT_DIR, filename));
     }
 
+    public void uploadThumbnail(String streamWatchKey, Path filePath) {
+        String objectName = String.join("/", VOD_PATH, streamWatchKey, THUMBNAIL_NAME);
+
+        this.putObjectRequest(objectName, filePath);
+    }
+
     private void putObjectRequest(String objectName, Path filePath) {
         this.putObjectRequest(objectName, filePath, false);
     }
@@ -130,7 +136,7 @@ public class S3Service {
     }
 
     private String getThumbnailUrl(String streamWatchKey) {
-        return String.join("/", VOD_PATH, streamWatchKey, streamWatchKey + "_" + THUMBNAIL_NAME);
+        return String.join("/", VOD_PATH, streamWatchKey, THUMBNAIL_NAME);
     }
 
     private String generatePreSignedUrl(String resourcePath) {

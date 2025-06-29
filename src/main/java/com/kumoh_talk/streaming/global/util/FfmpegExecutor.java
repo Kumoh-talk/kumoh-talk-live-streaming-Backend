@@ -77,11 +77,11 @@ public class FfmpegExecutor {
     public void extractThumbnail(Path tsFilePath, String streamWatchKey) {
         String inputPath = tsFilePath.toAbsolutePath().toString();
         String filename = streamWatchKey + "_" + THUMBNAIL_NAME;
-        Path outputPath = tsFilePath.getParent().resolve(filename);
+        Path outputPath = Path.of(THUMBNAIL_DIR, filename);
 
         String[] thumbnailCmd = {
                 "ffmpeg", "-y",
-                "-sseof", "-0.1",
+                "-sseof", "-0.5",
                 "-i", inputPath,
                 "-frames:v", "1",
                 "-vf", "scale=" + THUMBNAIL_RESOLUTION,
@@ -94,7 +94,7 @@ public class FfmpegExecutor {
             Process process =  new ProcessBuilder(thumbnailCmd).inheritIO().start();
 
             if (process.waitFor() == 0) {
-                s3Service.uploadHlsFile(filename, streamWatchKey);
+                s3Service.uploadThumbnail(streamWatchKey, outputPath);
                 log.info("썸네일 생성 및 업로드 완료: {}", outputPath);
             }
         } catch (IOException | InterruptedException e) {

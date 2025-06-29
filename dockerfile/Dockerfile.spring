@@ -32,7 +32,7 @@ USER www-data
 COPY --from=builder --chown=www-data:www-data /app/build/libs/streaming-0.0.1-SNAPSHOT.jar app.jar
 
 # HLS 및 PID 경로 생성 및 권한 설정
-RUN mkdir -p /tmp/hls /tmp/hls_audio /tmp/pids && \
+RUN mkdir -p /tmp/hls /tmp/hls_audio /tmp/thumbnail /tmp/pids && \
     chown -R www-data:www-data /tmp/hls /tmp/hls_audio /tmp/pids
 
 # Configure JVM options
