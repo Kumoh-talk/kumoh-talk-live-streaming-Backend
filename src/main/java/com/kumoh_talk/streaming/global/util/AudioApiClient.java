@@ -6,7 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.reactive.function.client.WebClientException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class AudioApiClient {
                     .block();
 
             log.info("audio api start request, response: {}", startResponse);
-        } catch (WebClientResponseException e) {
+        } catch (WebClientException e) {
             log.error("audio api start error: {}", e.getMessage());
         }
     }
@@ -59,7 +59,7 @@ public class AudioApiClient {
                     .block();
 
             log.info("audio api end request, response: {}", endResponse);
-        } catch (WebClientResponseException e) {
+        } catch (WebClientException e) {
             log.error("audio api end error: {}", e.getMessage());
         }
     }
