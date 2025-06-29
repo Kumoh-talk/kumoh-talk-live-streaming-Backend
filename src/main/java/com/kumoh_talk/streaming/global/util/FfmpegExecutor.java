@@ -86,6 +86,7 @@ public class FfmpegExecutor {
                 "-frames:v", "1",
                 "-vf", "scale=" + THUMBNAIL_RESOLUTION,
                 "-color_range", "tv",
+                "-update", "1",
                 outputPath.toString()
         };
 
