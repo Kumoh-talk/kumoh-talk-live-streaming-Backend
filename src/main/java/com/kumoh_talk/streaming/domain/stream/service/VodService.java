@@ -25,7 +25,7 @@ public class VodService {
         List<VodListResponse.VodInfo> vodList = vodRepository.findAll().stream()
                 .map(vod -> VodListResponse.VodInfo.builder()
                         .vodId(vod.getId())
-                        .thumbnailUrl(s3Service.generateThumbnailUrl(vod.getSlideUrl()))
+                        .thumbnailUrl(s3Service.generateThumbnailUrl(vod.getSlideUrl().split("/")[1]))
                         .title(vod.getTitle())
                         .length(vod.getLength())
                         .views(vod.getViews())

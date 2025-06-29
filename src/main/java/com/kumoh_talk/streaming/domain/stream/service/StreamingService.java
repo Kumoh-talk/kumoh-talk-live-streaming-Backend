@@ -323,7 +323,7 @@ public class StreamingService {
                 .map(streaming -> StreamingListResponse.StreamingInfo.builder()
                         .streamId(streaming.getId())
                         .title(streaming.getTitle())
-                        .thumbnailUrl(s3Service.generateThumbnailUrl(VOD_PATH + "/" + streaming.getSlideWatchKey()))
+                        .thumbnailUrl(s3Service.generateThumbnailUrl(streaming.getSlideWatchKey()))
                         .viewers(getSubscriberCount(streaming.getId().toString()))
                         .build()
                 ).toList();
