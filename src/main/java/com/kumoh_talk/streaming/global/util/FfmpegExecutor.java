@@ -49,7 +49,7 @@ public class FfmpegExecutor {
     @Async
     public void startAudioFfmpeg(String streamUploadKey, String streamWatchKey) {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(3000);
         } catch (InterruptedException e) {
             log.warn("Audio FFmpeg sleep interrupted.");
         }
@@ -73,6 +73,12 @@ public class FfmpegExecutor {
 
         try {
             new ProcessBuilder(audioCmd).inheritIO().start();
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                log.warn("Audio FFmpeg sleep interrupted.");
+            }
 
             audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey.split(STREAMING_TYPE_DELIMITER)[0]);
 
