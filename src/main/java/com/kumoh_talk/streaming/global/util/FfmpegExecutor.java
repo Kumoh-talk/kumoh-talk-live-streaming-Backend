@@ -75,7 +75,7 @@ public class FfmpegExecutor {
             Process process = new ProcessBuilder(audioCmd).inheritIO().start();
             int exitCode = process.waitFor();
             if (exitCode == 0) {
-                audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey);
+                audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey.split(STREAMING_TYPE_DELIMITER)[0]);
             } else {
                 log.info("FFmpeg 종료 코드: {}", exitCode);
             }
