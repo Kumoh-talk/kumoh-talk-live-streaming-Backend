@@ -72,14 +72,11 @@ public class FfmpegExecutor {
         new File(hlsAudioDir).mkdirs();
 
         try {
-            Process process = new ProcessBuilder(audioCmd).inheritIO().start();
-            int exitCode = process.waitFor();
-            if (exitCode == 0) {
-                audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey.split(STREAMING_TYPE_DELIMITER)[0]);
-            } else {
-                log.info("FFmpeg 종료 코드: {}", exitCode);
-            }
-        } catch (IOException | InterruptedException e) {
+            new ProcessBuilder(audioCmd).inheritIO().start();
+
+            audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey.split(STREAMING_TYPE_DELIMITER)[0]);
+
+        } catch (IOException e) {
             log.error("오디오 분리 실패({}): {}", hlsAudioDir, e.getMessage());
             throw ServiceException.from(ExceptionCode.FFMPEG_PROCESS_ERROR);
         }
