@@ -61,7 +61,7 @@ public class FfmpegExecutor {
 
         String[] audioCmd = {
                 "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
-                "-map", "0:a:0?", "-vn", "-c:a", "aac", "-f", "hls",
+                "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
                 "-hls_flags", "delete_segments",
