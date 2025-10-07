@@ -54,13 +54,13 @@ public class FfmpegExecutor {
             log.warn("Audio FFmpeg sleep interrupted.");
         }
 
-        String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
+        String hlsUrl = "/tmp/hls/" + streamUploadKey + ".m3u8";
 
         String hlsAudioDir = AUDIO_OUTPUT_DIR + "/" + streamWatchKey;
         String hlsAudioUrl = String.join("/", AUDIO_OUTPUT_DIR, streamWatchKey, M3U8_NAME);
 
         String[] audioCmd = {
-                "ffmpeg", "-fflags", "+genpts", "-i", rtmpUrl,
+                "ffmpeg", "-i", hlsUrl,
                 "-vn", "-c:a", "aac", "-f", "hls",
                 "-hls_time", HLS_TIME.toString(),
                 "-hls_list_size", HLS_LIST_SIZE.toString(),
