@@ -58,10 +58,11 @@ public class S3Service {
 
     private final static int GET_REQUEST_DURATION_OF_MINUTES = 60;
 
-    public void uploadHlsFile(String filename, String streamWatchKey) {
+    public void uploadHlsFile(Path filePath, String streamWatchKey) {
+        String filename = filePath.getFileName().toString();
         String objectName = String.join("/", VOD_PATH, streamWatchKey, filename);
 
-        this.putObjectRequest(objectName, Path.of(HLS_OUTPUT_DIR, filename));
+        this.putObjectRequest(objectName, filePath);
     }
 
     public void uploadThumbnail(String streamWatchKey, Path filePath) {

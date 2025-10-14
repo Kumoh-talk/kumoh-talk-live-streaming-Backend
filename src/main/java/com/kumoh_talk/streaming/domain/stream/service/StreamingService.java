@@ -76,9 +76,9 @@ public class StreamingService {
 
         String streamWatchKey = getOrCreateStreamWatchKey(streamKey, type);
 
-        convertRtmpToHlsWithAudio(name, streamWatchKey, type);
+        String hlsDir = convertRtmpToHls(name, streamWatchKey);
 
-        hlsWatcherRunner.startWatcher(streamWatchKey, type);
+        hlsWatcherRunner.startWatcher(Path.of(hlsDir), streamWatchKey, type);
 
         log.info("{} 송출 ok", name);
     }
@@ -157,10 +157,8 @@ public class StreamingService {
         return streaming.getCamWatchKey();
     }
 
-    private void convertRtmpToHlsWithAudio(String streamUploadKey, String streamWatchKey, String type) {
-        if (type.equals(DESKTOP_TYPE)) {
-            ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
-        }
+    private String convertRtmpToHls(String streamUploadKey, String streamWatchKey) {
+        return ffmpegExecutor.startVideoFfmpeg(streamUploadKey, streamWatchKey);
     }
 
     public void stopStreaming(String name) {
@@ -209,6 +207,7 @@ public class StreamingService {
 
         try {
             Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
+            deleteDirectoryRecursively(hlsDir);
             deleteDirectoryRecursively(hlsAudioDir);
 
             File thumbnail = new File(THUMBNAIL_DIR + "/" + streamWatchKey + "_" + THUMBNAIL_NAME);
@@ -222,10 +221,7 @@ public class StreamingService {
 
     private int extractIndex(String tsPath) {
         String filename = tsPath.substring(tsPath.lastIndexOf("/") + 1);
-
-        int dashIndex = filename.lastIndexOf('-');
-        int dotIndex = filename.lastIndexOf('.');
-        String numberPart = filename.substring(dashIndex + 1, dotIndex);
+        String numberPart = filename.replaceAll("\\D+", "");
 
         return Integer.parseInt(numberPart); // 이 부분은 int 범위만 가능
     }

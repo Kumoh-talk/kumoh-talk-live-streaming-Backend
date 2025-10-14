@@ -9,8 +9,7 @@ import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.index.Indexed;
 
 import java.time.LocalDateTime;
-
-import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.*;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -41,8 +40,8 @@ public class Streaming {
         this.startTime = startTime;
         this.title = title;
         this.streamUploadKey = streamUploadKey;
-        this.camWatchKey = streamUploadKey + STREAMING_TYPE_DELIMITER + WEBCAM_TYPE;
-        this.slideWatchKey = streamUploadKey + STREAMING_TYPE_DELIMITER + DESKTOP_TYPE;
+        this.camWatchKey = UUID.randomUUID().toString();
+        this.slideWatchKey = UUID.randomUUID().toString();
         this.summary = "";
     }
 }

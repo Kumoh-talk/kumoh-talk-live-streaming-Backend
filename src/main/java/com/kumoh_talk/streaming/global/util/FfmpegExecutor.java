@@ -27,6 +27,7 @@ public class FfmpegExecutor {
     public String startVideoFfmpeg(String streamUploadKey, String streamWatchKey) {
         String rtmpUrl = RTMP_URL_PREFIX + streamUploadKey;
 
+        // ex) hlsDir: /tmp/hls/abcd1234, hlsUrl: /tmp/hls/abcd1234/index.m3u8
         String hlsDir = HLS_OUTPUT_DIR + "/" + streamWatchKey;
         String hlsUrl = String.join("/", HLS_OUTPUT_DIR, streamWatchKey, M3U8_NAME);
 
@@ -54,7 +55,8 @@ public class FfmpegExecutor {
             log.warn("Audio FFmpeg sleep interrupted.");
         }
 
-        String hlsUrl = "/tmp/hls/" + streamUploadKey + ".m3u8";
+        // ex) hlsUrl: /tmp/hls/abcd1234/index.m3u8, hlsAudioDir: /tmp/hls_audio/abcd1234, hlsAudioUrl:
+        String hlsUrl = String.join("/",HLS_OUTPUT_DIR, streamWatchKey, M3U8_NAME);
 
         String hlsAudioDir = AUDIO_OUTPUT_DIR + "/" + streamWatchKey;
         String hlsAudioUrl = String.join("/", AUDIO_OUTPUT_DIR, streamWatchKey, M3U8_NAME);
@@ -93,6 +95,7 @@ public class FfmpegExecutor {
         String filename = streamWatchKey + "_" + THUMBNAIL_NAME;
         Path outputPath = Path.of(THUMBNAIL_DIR, filename);
 
+        // TODO. 썸네일 생성 이슈
         String[] thumbnailCmd = {
                 "ffmpeg", "-y",
                 "-sseof", "-0.5",
