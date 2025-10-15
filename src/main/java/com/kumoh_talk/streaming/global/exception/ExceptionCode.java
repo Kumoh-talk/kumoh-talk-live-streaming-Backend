@@ -37,6 +37,10 @@ public enum ExceptionCode {
     MULTIPLE_SELECT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "S002", "여러 선택지 불가"),
     INVALID_SELECT(HttpStatus.BAD_REQUEST, "S003", "존재하지 않는 선택지"),
 
+    // bookmark
+    BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 북마크를 찾을 수 없음"),
+    INVALID_VOD(HttpStatus.BAD_REQUEST, "B002", "vod에 해당하지 않는 북마크 ID")
+
     ;
 
     private final HttpStatus status;
