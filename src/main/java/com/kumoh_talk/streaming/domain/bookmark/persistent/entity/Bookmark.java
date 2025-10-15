@@ -1,5 +1,6 @@
 package com.kumoh_talk.streaming.domain.bookmark.persistent.entity;
 
+import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,8 +22,8 @@ public class Bookmark {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-		@ManyToOne(fetch = FetchType.LAZY)
-		@JoinColumn(name = "vod_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vod_id", nullable = false)
     private Vod vod;
 
     @Column(length = 20, nullable = false)
@@ -31,10 +32,10 @@ public class Bookmark {
     @Column(nullable = false)
     private LocalTime time;
 
-		@Builder
-    public Bookmark(Long userId, Long vodId, String title, LocalTime time) {
+    @Builder
+    public Bookmark(Long userId, Vod vod, String title, LocalTime time) {
         this.userId = userId;
-        this.vodId = vodId;
+        this.vod = vod;
         this.title = title;
         this.time = time;
     }

@@ -5,6 +5,8 @@ import com.kumoh_talk.streaming.domain.stream.persistent.entity.Vod;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 	List<Bookmark> findByUserIdAndVod(Long userId, Vod vod);

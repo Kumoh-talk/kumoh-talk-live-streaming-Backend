@@ -36,6 +36,10 @@ public enum ExceptionCode {
     VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "S001", "해당 투표를 찾을 수 없음"),
     MULTIPLE_CHOICES_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "S002", "해당 투표는 하나의 선택지만 허용됩니다."),
 
+    // bookmark
+    BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "해당 북마크를 찾을 수 없음"),
+    INVALID_VOD(HttpStatus.BAD_REQUEST, "B002", "vod에 해당하지 않는 북마크 ID")
+
     ;
 
     private final HttpStatus status;

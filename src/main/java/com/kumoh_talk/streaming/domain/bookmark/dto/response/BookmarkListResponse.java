@@ -12,10 +12,8 @@ public record BookmarkListResponse(
     @Builder
     public record BookmarkInfo(
         Long bookmarkId,
-        Long userId,
-				Long vodId,
-				String title,
-				LocalTime time,
+        String title,
+        LocalTime time
     ) {
     }
 }
