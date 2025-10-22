@@ -7,12 +7,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.DESKTOP_TYPE;
+import static com.kumoh_talk.streaming.domain.stream.constant.StreamingConstants.STREAMING_TYPE_DELIMITER;
 
 @Component
 @RequiredArgsConstructor
 public class HlsWatcherRunner {
+
+    private static final ConcurrentHashMap<String, HlsWatcher> HLS_WATCHER_MAP = new ConcurrentHashMap<>();
 
     private final FfmpegExecutor ffmpegExecutor;
     private final S3Service s3Service;
@@ -31,6 +35,8 @@ public class HlsWatcherRunner {
         Thread watcherThread = new Thread(watcher);
         watcherThread.setDaemon(true);
         watcherThread.start();
+
+        HLS_WATCHER_MAP.put(streamWatchKey + STREAMING_TYPE_DELIMITER + type, watcher);
     }
 
     private HlsWatcher.HlsStreamStartedEventHandler getHlsStreamStartedEventHandler(String type) {
@@ -45,5 +51,16 @@ public class HlsWatcherRunner {
                     ffmpegExecutor.extractThumbnail(filePath, streamWatchKey);
         }
         return hlsStreamStartedEventHandler;
+    }
+
+    public void stopWatcher(String streamWatchKey, String type) {
+        String mapKey = streamWatchKey + STREAMING_TYPE_DELIMITER + type;
+        HlsWatcher watcher = HLS_WATCHER_MAP.get(mapKey);
+
+        if (watcher != null) {
+            watcher.stopWatching();
+        }
+
+        HLS_WATCHER_MAP.remove(mapKey);
     }
 }

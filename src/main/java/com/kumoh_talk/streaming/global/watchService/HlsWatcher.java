@@ -65,6 +65,10 @@ public class HlsWatcher implements Runnable {
                     tsFileEventHandler.handleNewFile(filePath, streamWatchKey);
                 }
 
+                if (!watching) {
+                    return;
+                }
+
                 if (!key.reset()) {
                     throw ServiceException.from(ExceptionCode.DIRECTORY_WATCH_FAILED);
                 }

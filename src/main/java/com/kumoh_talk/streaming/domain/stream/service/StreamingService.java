@@ -179,6 +179,8 @@ public class StreamingService {
             streamWatchKey = streaming.getCamWatchKey();
         }
 
+        hlsWatcherRunner.stopWatcher(streamWatchKey, type);
+
         // TODO. VOD에서 5초 정도 잘리는 문제(hls가 생성되고 업로드 되기 전에 m3u8 파일 생성) 해결
         List<String> tsList = s3Service.getFileList(streamWatchKey).stream()
                 .filter(path -> path.endsWith(".ts"))
