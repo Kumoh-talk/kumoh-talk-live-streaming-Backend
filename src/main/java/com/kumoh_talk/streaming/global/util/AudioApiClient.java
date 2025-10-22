@@ -15,8 +15,10 @@ import java.util.Map;
 @Service
 public class AudioApiClient {
 
-    private final StreamingConfig streamingConfig;
+    private static final String PAYLOAD_HLS_URL = "hls_url";
+    private static final String PAYLOAD_STREAM_KEY = "session_id";
 
+    private final StreamingConfig streamingConfig;
     private final WebClient webClient;
 
     public AudioApiClient(StreamingConfig config) {
@@ -27,10 +29,10 @@ public class AudioApiClient {
                 .build();
     }
 
-    public void start(String hlsUrl, String sessionId) {
+    public void start(String hlsUrl, String streamWatchKey) {
         Map<String, Object> startPayload = new HashMap<>();
-        startPayload.put("hls_url", streamingConfig.getHlsUrlPrefix() + hlsUrl);
-        startPayload.put("session_id", sessionId);
+        startPayload.put(PAYLOAD_HLS_URL, streamingConfig.getHlsUrlPrefix() + hlsUrl);
+        startPayload.put(PAYLOAD_STREAM_KEY, streamWatchKey);
 
         try {
             Map startResponse = webClient.post()
@@ -46,9 +48,9 @@ public class AudioApiClient {
         }
     }
 
-    public void end(String sessionId) {
+    public void end(String streamWatchKey) {
         Map<String, Object> endPayload = new HashMap<>();
-        endPayload.put("session_id", sessionId);
+        endPayload.put(PAYLOAD_STREAM_KEY, streamWatchKey);
 
         try {
             Map endResponse = webClient.post()

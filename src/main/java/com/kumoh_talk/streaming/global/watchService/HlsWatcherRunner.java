@@ -42,13 +42,12 @@ public class HlsWatcherRunner {
     private HlsWatcher.HlsStreamStartedEventHandler getHlsStreamStartedEventHandler(String type) {
         HlsWatcher.HlsStreamStartedEventHandler hlsStreamStartedEventHandler;
         if (type.equals(DESKTOP_TYPE)) {
-            hlsStreamStartedEventHandler = (filePath, streamUploadKey, streamWatchKey) -> {
+            hlsStreamStartedEventHandler = (filePath, streamWatchKey) -> {
                     ffmpegExecutor.extractThumbnail(filePath, streamWatchKey);
-                    ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
+                    ffmpegExecutor.startAudioFfmpeg(streamWatchKey);
             };
         } else {
-            hlsStreamStartedEventHandler = (filePath, streamUploadKey, streamWatchKey) ->
-                    ffmpegExecutor.extractThumbnail(filePath, streamWatchKey);
+            hlsStreamStartedEventHandler = ffmpegExecutor::extractThumbnail;
         }
         return hlsStreamStartedEventHandler;
     }

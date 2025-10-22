@@ -190,7 +190,7 @@ public class StreamingService {
 
         if (isSlideType) {
             saveVodEntity(streaming, tsList.size() * HLS_TIME);
-            audioApiClient.end(streamKey);  // 우선 업로드 키로 전달
+            audioApiClient.end(streamWatchKey);
         }
 
         Long result = stringRedisTemplate.opsForValue().increment("stream:done:count:" + streamKey);

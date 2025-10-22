@@ -21,7 +21,6 @@ public class HlsWatcher implements Runnable {
 
     private final Path pathToWatch;
     private final String streamWatchKey;
-    private final String streamUploadKey;
     private final TsFileEventHandler tsFileEventHandler;
     private final HlsStreamStartedEventHandler hlsStreamStartedEventHandler;
     private volatile boolean watching;
@@ -30,7 +29,6 @@ public class HlsWatcher implements Runnable {
     public HlsWatcher(Path directoryPath, String streamWatchKey, TsFileEventHandler tsFileEventHandler, HlsStreamStartedEventHandler hlsStreamStartedEventHandler) {
         this.pathToWatch = directoryPath;
         this.streamWatchKey = streamWatchKey;
-        this.streamUploadKey = directoryPath.getFileName().toString();
         this.tsFileEventHandler = tsFileEventHandler;
         this.hlsStreamStartedEventHandler = hlsStreamStartedEventHandler;
         this.watching = true;
@@ -87,7 +85,7 @@ public class HlsWatcher implements Runnable {
                 if (iterator.hasNext()) {
                     Path tsFilePath = iterator.next();
                     log.info("{}: HLS 세그먼트 감지됨", tsFilePath);
-                    hlsStreamStartedEventHandler.handleStreamStart(tsFilePath, streamUploadKey, streamWatchKey);
+                    hlsStreamStartedEventHandler.handleStreamStart(tsFilePath, streamWatchKey);
                     return;
                 }
             } catch (IOException e) {
@@ -115,7 +113,7 @@ public class HlsWatcher implements Runnable {
 
     @FunctionalInterface
     public interface HlsStreamStartedEventHandler {
-        void handleStreamStart(Path filePath, String streamUploadKey, String streamWatchKey);
+        void handleStreamStart(Path filePath, String streamWatchKey);
     }
 
     public void stopWatching() {

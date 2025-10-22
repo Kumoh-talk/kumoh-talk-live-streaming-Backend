@@ -48,7 +48,7 @@ public class FfmpegExecutor {
     }
 
     @Async
-    public void startAudioFfmpeg(String streamUploadKey, String streamWatchKey) {
+    public void startAudioFfmpeg(String streamWatchKey) {
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
@@ -82,7 +82,7 @@ public class FfmpegExecutor {
                 log.warn("Audio FFmpeg sleep interrupted.");
             }
 
-            audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamUploadKey.split(STREAMING_TYPE_DELIMITER)[0]);
+            audioApiClient.start(hlsAudioUrl.replace("/tmp/", ""), streamWatchKey);
 
         } catch (IOException e) {
             log.error("오디오 분리 실패({}): {}", hlsAudioDir, e.getMessage());
