@@ -50,7 +50,6 @@ public class VodService {
                 .slideTsQuery(slideUrl.split("\\?")[1])
                 .camUrl(camUrl)
                 .camTsQuery(camUrl.split("\\?")[1])
-                // TODO. bookmark 추가
                 .build();
     }
 }
