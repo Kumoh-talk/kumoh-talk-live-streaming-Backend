@@ -37,8 +37,8 @@ public class HlsWatcherRunner {
         HlsWatcher.HlsStreamStartedEventHandler hlsStreamStartedEventHandler;
         if (type.equals(DESKTOP_TYPE)) {
             hlsStreamStartedEventHandler = (filePath, streamUploadKey, streamWatchKey) -> {
-                    ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
                     ffmpegExecutor.extractThumbnail(filePath, streamWatchKey);
+                    ffmpegExecutor.startAudioFfmpeg(streamUploadKey, streamWatchKey);
             };
         } else {
             hlsStreamStartedEventHandler = (filePath, streamUploadKey, streamWatchKey) ->

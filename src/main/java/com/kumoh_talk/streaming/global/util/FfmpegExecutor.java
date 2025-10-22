@@ -95,15 +95,13 @@ public class FfmpegExecutor {
         String filename = streamWatchKey + "_" + THUMBNAIL_NAME;
         Path outputPath = Path.of(THUMBNAIL_DIR, filename);
 
-        // TODO. 썸네일 생성 이슈
         String[] thumbnailCmd = {
                 "ffmpeg", "-y",
-                "-sseof", "-0.5",
                 "-i", inputPath,
+                "-ss", "00:00:00.5",
                 "-frames:v", "1",
                 "-vf", "scale=" + THUMBNAIL_RESOLUTION,
                 "-color_range", "tv",
-                "-update", "1",
                 outputPath.toString()
         };
 
