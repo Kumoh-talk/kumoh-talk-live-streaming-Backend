@@ -201,11 +201,11 @@ public class StreamingService {
             // TODO. 레디스에 남은 qna, vote 정리
         }
 
-        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
-
         if (!isSlideType) {
             return;
         }
+
+        Path hlsDir = Paths.get(HLS_OUTPUT_DIR, streamWatchKey);
 
         try {
             Path hlsAudioDir = Paths.get(AUDIO_OUTPUT_DIR, streamWatchKey);
