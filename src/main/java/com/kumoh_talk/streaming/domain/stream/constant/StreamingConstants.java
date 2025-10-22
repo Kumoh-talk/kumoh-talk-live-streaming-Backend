@@ -17,7 +17,7 @@ public final class StreamingConstants {
 
     public static final String THUMBNAIL_DIR = "/tmp/thumbnail";
     public static final String THUMBNAIL_NAME = "thumbnail.jpg";
-    public static final String THUMBNAIL_RESOLUTION = "320:180";
+    public static final String THUMBNAIL_RESOLUTION = "640:360";
 
     private StreamingConstants() {}
 }
