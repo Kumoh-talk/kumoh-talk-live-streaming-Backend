@@ -23,6 +23,7 @@ public class ChatWebSocketService {
 
     @Transactional
     public void addChat(ChatCreateRequest chatCreateRequest, Long streamId, AuthenticatedUser authenticatedUser) {
+        // TODO. 스트리밍 시작 시 VOD를 미리 생성(VOD의 상태 추가 필요할 수도)하고 streamId-vodId 매핑을 캐싱한 뒤 Chat-Vod 연관관계를 저장
         Chat chat = Chat.builder()
                 .content(chatCreateRequest.content())
                 .userId(authenticatedUser.userId())

@@ -44,6 +44,8 @@ public class VodService {
         String slideUrl = s3Service.generateSignedUrl(vod.getSlideUrl());
         String camUrl = s3Service.generateSignedUrl(vod.getCamUrl());
 
+        // TODO: 조회수 증가 로직 추가 (조회수 증가 시점에 대한 논의 필요)
+
         return VodResponse.builder()
                 .title(vod.getTitle())
                 .slideUrl(slideUrl)
