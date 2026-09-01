@@ -22,8 +22,7 @@
   - [📚 세부 문서](#-세부-문서)
   - [🖼️ 작동 화면](#️-작동-화면)
     - [라이브 세미나 스트리밍](#라이브-세미나-스트리밍)
-    - [실시간 채팅](#실시간-채팅)
-    - [Q\&A](#qa)
+    - [실시간 채팅과 Q\&A](#실시간-채팅과-qa)
     - [투표](#투표)
   - [🏗️ 핵심 흐름](#️-핵심-흐름)
   - [🛠️ 기술 스택](#️-기술-스택)
@@ -60,33 +59,21 @@
 
 ### 라이브 세미나 스트리밍
 
-<p align="center">
-  <img src="docs/images/live-seminar-streaming.png" width="100%" alt="라이브 세미나 스트리밍 화면" />
-</p>
+<img src="docs/images/live-seminar-streaming.png" width="760" alt="라이브 세미나 스트리밍 화면" />
 
-### 실시간 채팅
+### 실시간 채팅과 Q&A
 
-<p align="center">
-  <img src="docs/images/live-chat.png" width="60%" alt="실시간 채팅 화면" />
-</p>
-
-### Q&A
-
-<p align="center">
-  <img src="docs/images/qna.png" width="60%" alt="Q&A 화면" />
-</p>
+| 실시간 채팅 | Q&A |
+| --- | --- |
+| <img src="docs/images/live-chat.png" width="100%" alt="실시간 채팅 화면" /> | <img src="docs/images/qna.png" width="100%" alt="Q&A 화면" /> |
 
 ### 투표
 
-<p align="center">
-  <img src="docs/images/vote.png" width="100%" alt="투표 화면" />
-</p>
+<img src="docs/images/vote.png" width="640" alt="투표 화면" />
 
 ## 🏗️ 핵심 흐름
 
-<p align="center">
-  <img src="docs/images/rtmp_ingest_flow.png" width="100%" alt="RTMP 송출부터 HLS 변환과 저장까지의 흐름" />
-</p>
+<img src="docs/images/rtmp_ingest_flow.png" width="820" alt="RTMP 송출부터 HLS 변환과 저장까지의 흐름" />
 
 1. 송출 프로그램이 발표 화면과 웹캠을 각각 RTMP 스트림으로 전송합니다.
 2. Nginx-RTMP 콜백을 받은 Spring 서버가 스트림 키를 검증하고 FFmpeg 변환을 시작합니다.
